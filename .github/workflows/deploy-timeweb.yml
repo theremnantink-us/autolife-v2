@@ -1,0 +1,61 @@
+name: Deploy to TimeWeb
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: site
+
+      - name: Build Astro site
+        run: npm run build
+        working-directory: site
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_YANDEX_API_KEY: ${{ vars.PUBLIC_YANDEX_API_KEY }}
+          PUBLIC_YANDEX_PLACE_ID: ${{ vars.PUBLIC_YANDEX_PLACE_ID }}
+
+      # Deploy built frontend (dist/) to public_html/dist/ on TimeWeb
+      - name: Deploy frontend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./site/dist/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}dist/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      # Deploy PHP backend (public_html/) — skips dist/ and node_modules
+      - name: Deploy PHP backend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./public_html/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .env
+            .env.*

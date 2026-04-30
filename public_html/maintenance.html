@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Технические работы — АвтоЛайф</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100svh;
+      background: #08090b;
+      color: #e6e8ec;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .wrap {
+      text-align: center;
+      max-width: 520px;
+    }
+
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(232,234,237,0.45);
+      margin-bottom: 48px;
+    }
+
+    .icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 32px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(232,234,237,0.15);
+      background: rgba(232,234,237,0.04);
+      display: grid;
+      place-items: center;
+    }
+
+    .icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: rgba(232,234,237,0.6);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: spin 6s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    h1 {
+      font-size: clamp(24px, 5vw, 36px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #e8eaed 0%, #9aa0a8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: rgba(232,234,237,0.55);
+      margin-bottom: 12px;
+    }
+
+    .contacts {
+      margin-top: 48px;
+      padding: 20px 24px;
+      border: 1px solid rgba(232,234,237,0.08);
+      border-radius: 16px;
+      background: rgba(232,234,237,0.03);
+    }
+
+    .contacts p {
+      font-size: 13px;
+      color: rgba(232,234,237,0.4);
+      margin-bottom: 12px;
+    }
+
+    .contacts a {
+      color: rgba(232,234,237,0.75);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+
+    .contacts a:hover { color: #e8eaed; }
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 40px;
+    }
+
+    .dots span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(232,234,237,0.2);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 100% { background: rgba(232,234,237,0.15); transform: scale(1); }
+      50%       { background: rgba(232,234,237,0.6);  transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">АвтоЛайф</div>
+
+    <div class="icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+    </div>
+
+    <h1>Ведутся технические работы</h1>
+    <p>Мы обновляем сайт. Совсем скоро всё заработает.</p>
+    <p>Запись на услуги доступна по телефону в рабочее время.</p>
+
+    <div class="contacts">
+      <p>Связаться с нами</p>
+      <a href="tel:+79035551055">+7 (903) 555-10-55</a>
+    </div>
+
+    <div class="dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</body>
+</html>
