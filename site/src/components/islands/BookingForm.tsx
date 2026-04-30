@@ -115,6 +115,7 @@ export default function BookingForm() {
   const [pending, setPending] = useState(false);
   const [success, setSuccess] = useState<null | FormState>(null);
   const [serverErr, setServerErr] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
 
   const mountedAt = useRef<number>(Date.now());
 
@@ -123,7 +124,12 @@ export default function BookingForm() {
     fetch('/csrf.php', { credentials: 'same-origin' })
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(d => setCsrf(d?.csrf_token ?? ''))
-      .catch(() => { /* server may be cold; submit will surface error */ });
+      .catch(() => {
+        // PHP backend unavailable — set a placeholder so the button stays enabled.
+        // The server will reject requests without a real token; the error appears
+        // in the UI as a normal server error message at that point.
+        setCsrf('__dev__');
+      });
 
     fetch('/busy_dates.php', { credentials: 'same-origin' })
       .then(r => r.ok ? r.json() : Promise.reject())
@@ -373,13 +379,25 @@ export default function BookingForm() {
             <div className="bf-alert bf-alert--err" role="alert">{serverErr}</div>
           )}
 
-          <button type="submit" className="btn btn--chrome bf-form__submit" disabled={pending || !csrf}>
+          <label className="bf-form__agree">
+            <input
+              type="checkbox"
+              className="bf-form__agree-chk"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              aria-required="true"
+            />
+            <span>
+              Я ознакомился(-ась) и принимаю{' '}
+              <a href="/user-agreement.html" target="_blank" rel="noopener">пользовательское соглашение</a>
+              {' '}и{' '}
+              <a href="/privacy-policy.html" target="_blank" rel="noopener">политику конфиденциальности</a>
+            </span>
+          </label>
+
+          <button type="submit" className="btn btn--chrome bf-form__submit" disabled={pending || !csrf || !agreed}>
             {pending ? 'Отправляем…' : 'Записаться'}
           </button>
-
-          <p className="bf-form__legal">
-            Нажимая «Записаться», вы соглашаетесь с <a href="/privacy-policy.html">политикой конфиденциальности</a>.
-          </p>
         </form>
       </div>
 
@@ -531,12 +549,23 @@ export default function BookingForm() {
         .bf-form__submit { padding: 14px 20px; }
         .bf-form__submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .bf-form__legal {
-          color: var(--text-dim);
-          font-size: 12px;
-          text-align: center;
+        .bf-form__agree {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          cursor: pointer;
+          font-size: 13px;
+          color: var(--text-muted);
+          line-height: 1.5;
         }
-        .bf-form__legal a { color: var(--chrome-2); text-decoration: underline; }
+        .bf-form__agree-chk {
+          flex-shrink: 0;
+          width: 16px; height: 16px;
+          margin-top: 2px;
+          accent-color: var(--chrome-1, #e8eaed);
+          cursor: pointer;
+        }
+        .bf-form__agree a { color: var(--chrome-2); text-decoration: underline; }
 
         /* Modal */
         .bf-modal {

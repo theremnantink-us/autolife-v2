@@ -100,6 +100,7 @@ function migrateAdvancesIfNeeded(): void {
 export const deductionsStore = {
   list(): Deduction[] {
     migrateAdvancesIfNeeded();
+    migrateDeductionDefaults();
     return readArr<Deduction>('deductions');
   },
   listByType(type: 'advance' | 'fine'): Deduction[] {
@@ -298,10 +299,31 @@ export function seedIfEmpty() {
   ];
   writeArr('shifts', shifts);
 
-  // Деморежим: удержания не предустанавливаются
+  // Удержания не предустанавливаются
   writeArr('deductions', []);
 
-  window.localStorage.setItem('autolife:admin:seeded', '1');
+  window.localStorage.setItem('autolife:admin:seeded', '2');
+}
+
+/** One-time migration: removes legacy hardcoded deductions (Ivan 5000, Bill 3000)
+ *  that were seeded by versions before v2. Runs on every load, idempotent. */
+function migrateDeductionDefaults(): void {
+  if (typeof window === 'undefined') return;
+  const version = window.localStorage.getItem('autolife:admin:seeded');
+  if (version && version !== '1') return; // only needed for v1 seeds
+  if (version !== '1') return;
+  const current = readArr<Deduction>('deductions');
+  const LEGACY: Array<{ employeeId: string; amount: number }> = [
+    { employeeId: 'ivan', amount: 5000 },
+    { employeeId: 'bill', amount: 3000 },
+  ];
+  const cleaned = current.filter(d =>
+    !LEGACY.some(l => l.employeeId === d.employeeId && l.amount === d.amount && !d.payoutId)
+  );
+  if (cleaned.length !== current.length) {
+    writeArr('deductions', cleaned);
+  }
+  window.localStorage.setItem('autolife:admin:seeded', '2');
 }
 
 export function resetAll() {

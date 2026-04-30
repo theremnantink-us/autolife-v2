@@ -1,7 +1,7 @@
 /**
  * AdminApp — single React island that holds the three admin panels:
  *
- *   1. Дашборд      — статистика (визиты, записи, выручка, активность)
+ *   1. Дашборд      — статистика (визиты, записи, активность)
  *   2. Записи       — контроль записей (просмотр, смена статуса, mark complete)
  *   3. Зарплаты     — калькулятор зарплат + авансов + смен админов
  *
@@ -265,7 +265,7 @@ function Bookings({ apps, onChange }: { apps: AppointmentRecord[]; onChange: () 
       <div className="aap-table">
         <div className="aap-table__head">
           <span>Дата</span><span>Клиент</span><span>Авто</span>
-          <span>Услуга</span><span>Цена</span><span>Мастер</span>
+          <span>Услуга</span><span>Мастер</span>
           <span>Статус</span><span>Действия</span>
         </div>
         {sorted.length === 0 && <p className="aap__empty">Записей нет.</p>}
@@ -278,7 +278,6 @@ function Bookings({ apps, onChange }: { apps: AppointmentRecord[]; onChange: () 
             </span>
             <span>{a.carBrand} {a.carModel}</span>
             <span className="aap-table__svc">{a.serviceName}</span>
-            <span className="aap-table__price">{formatRub(a.servicePrice)}</span>
             <span>{employeeName(a.masterId) ?? '—'}</span>
             <span>
               <select
@@ -425,10 +424,10 @@ function Style() {
     }
     .aap-table__head, .aap-table__row {
       display: grid; gap: 8px;
-      grid-template-columns: 130px 1.2fr 1fr 1.2fr 90px 110px 130px 36px;
+      grid-template-columns: 130px 1.2fr 1fr 1.4fr 110px 130px 36px;
       padding: 10px 14px;
       align-items: center;
-      min-width: 880px;
+      min-width: 780px;
     }
     .aap-table--ledger .aap-table__head, .aap-table--ledger .aap-table__row {
       grid-template-columns: 140px 1fr 100px 100px 1.5fr 36px;
