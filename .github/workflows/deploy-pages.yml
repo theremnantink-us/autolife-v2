@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [master, claude/disable-employees-admin-hbldD]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
