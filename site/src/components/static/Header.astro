@@ -1,0 +1,408 @@
+---
+/* Desktop top-bar — only the routes a first-time visitor really needs. */
+const nav = [
+  { href: '/#services',    label: 'Услуги' },
+  { href: '/pricelist',    label: 'Прайс-лист' },
+  // { href: '/#team',     label: 'Команда' }, // временно скрыта секция сотрудников
+  { href: '/#contacts',    label: 'Контакты' },
+];
+
+/* Mobile drawer keeps a fuller set — the user is already in a dedicated
+   menu and has room for the secondary destinations. */
+const drawerNav = [
+  { href: '/#services',    label: 'Услуги' },
+  { href: '/pricelist',    label: 'Прайс-лист' },
+  { href: '/#promotions',  label: 'Акции' },
+  // { href: '/#team',     label: 'Команда' }, // временно скрыта секция сотрудников
+  { href: '/#gallery',     label: 'Галерея' },
+  { href: '/#reviews',     label: 'Отзывы' },
+  { href: '/#contacts',    label: 'Контакты' },
+];
+---
+<header class="hdr" id="site-header">
+  <div class="hdr__bar container">
+    <a href="/" class="hdr__brand" aria-label="АвтоЛайф — на главную">
+      <img src="/IMG/Лого.png" alt="АвтоЛайф" class="hdr__logo" width="160" height="42" />
+    </a>
+
+    <nav class="hdr__nav" aria-label="Основная навигация">
+      {nav.map(item => (
+        <a href={item.href} class="hdr__link">{item.label}</a>
+      ))}
+    </nav>
+
+    {/* Live Moscow time — drawn server-side so the chip never appears blank,
+        then refreshed every 30s by the inline script below. */}
+    <span class="hdr__clock" id="hdr-clock" title="Время по Москве" aria-label="Время по Москве">
+      <span class="hdr__clock-dot" aria-hidden="true"></span>
+      <span class="hdr__clock-time" id="hdr-clock-time">--:--</span>
+      <span class="hdr__clock-tz">МСК</span>
+    </span>
+
+    <a href="/#booking" class="btn btn--chrome hdr__cta">Записаться</a>
+
+    <button class="hdr__burger" id="hdr-burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="hdr-drawer">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+{/*
+  Drawer must live OUTSIDE the <header> — `.hdr` has `backdrop-filter`,
+  which makes it the containing block for any `position: fixed` descendant.
+  Inside the header, `inset: var(--header-h) 0 0 0` would resolve relative
+  to the 56px-tall header, leaving the drawer with effectively zero height.
+*/}
+<div class="hdr__drawer" id="hdr-drawer" aria-hidden="true">
+  <nav class="hdr__drawer-nav" aria-label="Мобильная навигация">
+    {drawerNav.map(item => (
+      <a href={item.href} class="hdr__drawer-link">{item.label}</a>
+    ))}
+    <a href="/#booking" class="btn btn--chrome hdr__drawer-cta">Записаться</a>
+  </nav>
+</div>
+
+<style>
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    /* Almost invisible at the top so the 3D scene reads through. Becomes a
+       darker glass strip when scrolled — still translucent so the user can
+       see what's behind, but readable. */
+    background: rgba(8, 9, 11, 0.18);
+    backdrop-filter: blur(8px) saturate(130%);
+    -webkit-backdrop-filter: blur(8px) saturate(130%);
+    border-bottom: 1px solid transparent;
+    transition: background var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                backdrop-filter var(--dur-base) var(--ease-out);
+  }
+  .hdr.is-scrolled {
+    background: rgba(8, 9, 11, 0.55);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border-bottom-color: var(--hairline);
+  }
+  .hdr__bar {
+    height: var(--header-h);
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .hdr__brand { display: inline-flex; align-items: center; }
+  .hdr__logo {
+    /* +10% on top of the previous bump (28 → 34 → 38px); width:auto
+       keeps the source aspect ratio intact. */
+    height: 38px;
+    width: auto;
+    filter: drop-shadow(0 0 10px rgba(232,234,237,0.18));
+  }
+  .hdr__nav {
+    display: flex;
+    gap: var(--space-5);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    justify-self: center;
+  }
+  .hdr__link {
+    position: relative;
+    padding: 4px 0;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .hdr__link::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -3px;
+    width: 0; height: 1px;
+    background: var(--chrome-gradient);
+    transition: width var(--dur-base) var(--ease-out);
+  }
+  .hdr__link:hover { color: var(--text); }
+  .hdr__link:hover::after { width: 100%; }
+
+  .hdr__cta { padding: 10px 18px; font-size: 11px; }
+
+  /* Live MSK clock — small chip that lives between the nav and the CTA.
+     Visible on mobile too (sits before the burger) so the time is always
+     accessible. */
+  .hdr__clock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(8, 9, 11, 0.45);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid var(--hairline);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--chrome-1);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .hdr__clock-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #58d68d;
+    box-shadow: 0 0 8px rgba(88, 214, 141, 0.7);
+    animation: clockPulse 2.4s var(--ease-in-out) infinite;
+  }
+  @keyframes clockPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+  }
+  .hdr__clock-tz {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+  }
+  @media (max-width: 599px) {
+    .hdr__clock { padding: 5px 9px; font-size: 11px; gap: 5px; }
+    .hdr__clock-tz { display: none; }    /* keep just the time on tiny phones */
+  }
+
+  .hdr__burger {
+    display: none;
+    width: 44px; height: 44px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    /* Explicit so nothing in a parent can intercept the tap. */
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .hdr__burger span {
+    width: 22px; height: 1.5px;
+    background: var(--chrome-1);
+    transition:
+      transform 0.42s cubic-bezier(0.65, 0, 0.25, 1),
+      opacity 0.22s var(--ease-out),
+      width 0.32s var(--ease-out);
+    pointer-events: none;        /* taps land on the button, not the bar */
+    transform-origin: center;
+  }
+  /* Subtle non-open hint: middle bar shorter, gives the chrome a sharper read. */
+  .hdr__burger span:nth-child(2) { width: 16px; align-self: center; }
+  .hdr__burger:hover span:nth-child(2) { width: 22px; }
+  .hdr__burger.is-open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .hdr__burger.is-open span:nth-child(2) { opacity: 0; transform: scaleX(0.4); }
+  .hdr__burger.is-open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  .hdr__drawer {
+    position: fixed;
+    inset: var(--header-h) 0 0 0;
+    background:
+      radial-gradient(ellipse 120% 70% at 100% 0%, rgba(28, 32, 40, 0.55) 0%, rgba(8, 9, 11, 0.0) 60%),
+      linear-gradient(180deg, rgba(8, 9, 11, 0.92) 0%, rgba(8, 9, 11, 0.97) 100%);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    z-index: calc(var(--z-header) - 1);
+    overflow-y: auto;
+    /* Fly-out from top-right: scale + slide + fade. Class-based toggle so
+       the element stays in the DOM (avoids [hidden] race on iOS Safari). */
+    visibility: hidden;
+    opacity: 0;
+    transform: translate3d(12%, -6%, 0) scale(0.94);
+    transform-origin: 100% 0%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition:
+      opacity 0.32s var(--ease-out),
+      transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 0.42s;
+  }
+  .hdr__drawer.is-open {
+    visibility: visible;
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    pointer-events: auto;
+    transition:
+      opacity 0.32s var(--ease-out),
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 0s;
+  }
+  .hdr__drawer-nav {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    gap: var(--space-4);
+  }
+  .hdr__drawer-link {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+    /* Per-item entrance: each link rises and fades in with a stagger.
+       Initial state when drawer is closed — sits below + invisible. */
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.32s var(--ease-out),
+      transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .hdr__drawer.is-open .hdr__drawer-link,
+  .hdr__drawer.is-open .hdr__drawer-cta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Stagger: each successive link enters ~50ms after the previous. */
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(1) { transition-delay: 0.10s; }
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(2) { transition-delay: 0.15s; }
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(3) { transition-delay: 0.20s; }
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(4) { transition-delay: 0.25s; }
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(5) { transition-delay: 0.30s; }
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(6) { transition-delay: 0.35s; }
+  .hdr__drawer.is-open .hdr__drawer-link:nth-child(7) { transition-delay: 0.40s; }
+  .hdr__drawer.is-open .hdr__drawer-cta { transition-delay: 0.46s; }
+
+  .hdr__drawer-cta {
+    margin-top: var(--space-3);
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.32s var(--ease-out),
+      transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hdr__drawer,
+    .hdr__drawer-link,
+    .hdr__drawer-cta,
+    .hdr__burger span { transition-duration: 0.001s; }
+    .hdr__drawer { transform: none; }
+    .hdr__drawer.is-open .hdr__drawer-link,
+    .hdr__drawer.is-open .hdr__drawer-cta { transition-delay: 0s; }
+  }
+
+  @media (max-width: 1023px) {
+    .hdr__nav, .hdr__cta { display: none; }
+    /* logo · clock · burger */
+    .hdr__bar { grid-template-columns: 1fr auto auto; }
+    .hdr__burger { display: inline-flex; }
+  }
+</style>
+
+<script is:inline>
+  /* Plain inline JS so we don't depend on Astro/Vite/TS compilation or
+     bundling — if anything else in the bundle errors, this keeps working.
+     Uses event delegation on document, so it survives subtree replacement
+     by view transitions or HMR without re-binding. */
+  (function () {
+    if (window.__autolifeHeaderBound) return;
+    window.__autolifeHeaderBound = true;
+
+    function $(id) { return document.getElementById(id); }
+
+    function setOpen(open) {
+      var burger = $('hdr-burger');
+      var drawer = $('hdr-drawer');
+      if (!burger || !drawer) return;
+      if (open) {
+        burger.classList.add('is-open');
+        burger.setAttribute('aria-expanded', 'true');
+        drawer.classList.add('is-open');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+      } else {
+        burger.classList.remove('is-open');
+        burger.setAttribute('aria-expanded', 'false');
+        drawer.classList.remove('is-open');
+        drawer.setAttribute('aria-hidden', 'true');
+        document.documentElement.style.overflow = '';
+      }
+    }
+    function isOpen() {
+      var burger = $('hdr-burger');
+      return !!(burger && burger.classList.contains('is-open'));
+    }
+    function toggle() { setOpen(!isOpen()); }
+
+    /* Burger toggle — delegated. Works whether the button itself or one of
+       its <span> bars is tapped. */
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t) return;
+      var burgerHit = t.closest && t.closest('#hdr-burger');
+      if (burgerHit) {
+        e.preventDefault();
+        toggle();
+        return;
+      }
+      // Tap on a link inside the drawer — close
+      var drawer = $('hdr-drawer');
+      if (drawer && drawer.classList.contains('is-open')) {
+        var linkHit = t.closest && t.closest('#hdr-drawer a');
+        if (linkHit) setOpen(false);
+      }
+    });
+
+    /* Some old WebViews need an explicit touchstart for instant feedback. */
+    document.addEventListener('touchstart', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest('#hdr-burger')) {
+        e.preventDefault();
+        toggle();
+      }
+    }, { passive: false });
+
+    /* Escape closes drawer */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isOpen()) setOpen(false);
+    });
+
+    /* Auto-close on viewport resize past mobile breakpoint */
+    var mq = window.matchMedia('(min-width: 1024px)');
+    function onMq(ev) { if (ev.matches) setOpen(false); }
+    if (mq.addEventListener) mq.addEventListener('change', onMq);
+    else if (mq.addListener) mq.addListener(onMq); // legacy
+
+    /* Scroll-aware header chrome */
+    function onScroll() {
+      var header = $('site-header');
+      if (!header) return;
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      header.classList.toggle('is-scrolled', y > 8);
+    }
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    /* Live MSK clock — Intl.DateTimeFormat handles DST/UTC offsets for us. */
+    function updateClock() {
+      var el = $('hdr-clock-time');
+      if (!el) return;
+      try {
+        var t = new Intl.DateTimeFormat('ru-RU', {
+          timeZone: 'Europe/Moscow',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).format(new Date());
+        el.textContent = t;
+      } catch (e) {
+        // Older browsers may not support timeZone — fall back to local time.
+        var d = new Date();
+        var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+        el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      }
+    }
+    updateClock();
+    // Tick every 30s — minute precision means at most a 30s lag.
+    window.setInterval(updateClock, 30000);
+  })();
+</script>

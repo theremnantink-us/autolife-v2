@@ -1,0 +1,301 @@
+---
+const steps = [
+  {
+    n: '01',
+    title: 'Выберите услугу',
+    text: 'Доступны мойка, детейлинг, химчистка, шиномонтаж и керамическое покрытие — всё в одной форме записи.',
+    icon: 'service',
+  },
+  {
+    n: '02',
+    title: 'Укажите автомобиль',
+    text: 'Марка и модель — нужны, чтобы заранее подготовить материалы и оснастку под ваш кузов.',
+    icon: 'car',
+  },
+  {
+    n: '03',
+    title: 'Выберите дату и время',
+    text: 'Открытый календарь со свободными слотами. Серым подсвечены даты, где запись недоступна.',
+    icon: 'calendar',
+  },
+  {
+    n: '04',
+    title: 'Подтвердите запись',
+    text: 'Перезвоним в течение часа — уточним детали и закрепим время. Если не получается приехать — сообщите за 2 часа.',
+    icon: 'phone',
+  },
+  {
+    n: '05',
+    title: 'Приезжайте в студию',
+    text: 'Рублёво-Успенское ш., п. Горки-10, стр. 31А. Услуги мойки — также по живой очереди в часы работы.',
+    icon: 'pin',
+  },
+];
+
+const icons: Record<string, string> = {
+  service:  '<path d="M12 2v4M12 18v4M2 12h4M18 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  car:      '<path d="M3 13l2-5a3 3 0 0 1 2.8-2h8.4A3 3 0 0 1 19 8l2 5v5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM7 16h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="7.5" cy="13.5" r="1.2" fill="currentColor"/><circle cx="16.5" cy="13.5" r="1.2" fill="currentColor"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  phone:    '<path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>',
+  pin:      '<path d="M12 22s7-7.5 7-12a7 7 0 1 0-14 0c0 4.5 7 12 7 12z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+};
+---
+<section class="process" id="process" aria-labelledby="process-heading">
+  <div class="container">
+    <header class="section__head process__head">
+      <p class="eyebrow">Как проходит запись</p>
+      <h2 id="process-heading" class="section__title">Пять простых шагов</h2>
+      <p class="section__lead">
+        От заявки до выезда из бокса — всё прозрачно. Запись подтверждается звонком оператора.
+      </p>
+    </header>
+
+    <ol class="process-steps" id="process-steps">
+      <span class="process-rail" aria-hidden="true">
+        <span class="process-rail__fill" id="process-rail-fill"></span>
+      </span>
+
+      {steps.map((s, i) => (
+        <li class="process-step" data-index={i} style={`--idx: ${i}`}>
+          <div class="process-step__node">
+            <span class="process-step__num">{s.n}</span>
+          </div>
+          <div class="process-step__body">
+            <div class="process-step__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" set:html={icons[s.icon]} />
+            </div>
+            <h3 class="process-step__title">{s.title}</h3>
+            <p class="process-step__text">{s.text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <div class="process__cta">
+      <a href="#booking" class="btn btn--chrome">Перейти к записи</a>
+      <a href="tel:+79035551055" class="btn btn--ghost">+7 (903) 555-10-55</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .process {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    background: transparent;
+  }
+  .process__head { max-width: 60ch; margin-bottom: var(--space-8); }
+
+  .process-steps {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-4);
+    counter-reset: step;
+    padding-block: var(--space-5);
+  }
+
+  /* Horizontal rail (desktop) */
+  .process-rail {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 38px;
+    height: 1px;
+    background: var(--hairline);
+    pointer-events: none;
+  }
+  .process-rail__fill {
+    display: block;
+    width: 0%;
+    height: 100%;
+    background: var(--chrome-gradient);
+    transform-origin: left center;
+    transition: width 0.18s linear;
+    box-shadow: 0 0 12px rgba(232,234,237,0.35);
+  }
+
+  .process-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.55s var(--ease-out), transform 0.55s var(--ease-out);
+    transition-delay: calc(var(--idx, 0) * 60ms);
+  }
+  .process-step.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .process-step__node {
+    position: relative;
+    z-index: 2;
+    width: 76px; height: 76px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 1px solid var(--hairline-strong);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-4);
+  }
+  .process-step__num {
+    font-family: var(--font-wordmark);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    background: var(--chrome-gradient);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .process-step.is-in .process-step__node {
+    border-color: var(--chrome-2);
+    box-shadow:
+      var(--shadow-card),
+      inset 0 0 0 1px rgba(232,234,237,0.25),
+      0 0 24px rgba(232,234,237,0.15);
+  }
+
+  .process-step__body {
+    max-width: 26ch;
+    /* Glass strip behind step text — keeps it readable when the white car
+       in the 3D backdrop drives behind. Same recipe as section__head. */
+    padding: var(--space-3) var(--space-4);
+    background: linear-gradient(180deg,
+      rgba(8,9,11,0.55) 0%,
+      rgba(8,9,11,0.32) 60%,
+      rgba(8,9,11,0.0) 100%);
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    border-radius: var(--r-md);
+  }
+  .process-step__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 36px; height: 36px;
+    margin-bottom: var(--space-2);
+    color: var(--chrome-2);
+  }
+  .process-step__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: var(--space-2);
+    line-height: 1.25;
+  }
+  .process-step__text {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  .process__cta {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-top: var(--space-7);
+    flex-wrap: wrap;
+  }
+  /* Force both Process CTAs to the same footprint regardless of text length
+     and button variant — they sit side by side and look broken otherwise. */
+  .process__cta .btn {
+    min-width: clamp(220px, 22vw, 260px);
+    padding: 14px 22px;
+    font-size: 13px;
+  }
+  @media (max-width: 599px) {
+    .process__cta { flex-direction: column; align-items: stretch; }
+    .process__cta .btn { width: 100%; min-width: 0; }
+  }
+
+  /* Tablet: switch to vertical timeline */
+  @media (max-width: 1023px) {
+    .process-steps {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+      padding-left: 24px;
+    }
+    .process-rail {
+      left: 36px; right: auto; top: 0; bottom: 0;
+      width: 1px; height: auto;
+    }
+    .process-rail__fill {
+      width: 100%; height: 0%;
+    }
+    .process-step {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+      gap: var(--space-4);
+    }
+    .process-step__node {
+      width: 56px; height: 56px;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+    .process-step__num { font-size: 14px; }
+    .process-step__body { max-width: none; flex: 1; padding-top: 6px; }
+    .process-step__icon { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .process-step { opacity: 1; transform: none; }
+  }
+</style>
+
+<script>
+  /* Step reveal + rail fill driven by scroll progress through the section. */
+  const steps = Array.from(document.querySelectorAll<HTMLElement>('.process-step'));
+  const list = document.getElementById('process-steps');
+  const rail = document.getElementById('process-rail-fill');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (steps.length && list && rail) {
+    // Reveal steps as they enter
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('is-in');
+      }),
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.25 }
+    );
+    steps.forEach(s => io.observe(s));
+
+    // Rail fill — progresses with scroll while the steps list is on screen
+    const tick = () => {
+      const r = list.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const top = r.top;
+      const h = r.height;
+      // Start filling when the list top hits 80% of viewport, finish at 30%.
+      const start = vh * 0.80;
+      const end   = vh * 0.30;
+      const span  = start - end;
+      const moved = Math.min(span, Math.max(0, start - top));
+      const pct = Math.min(1, moved / Math.max(1, span));
+      const isVertical = window.matchMedia('(max-width: 1023px)').matches;
+      if (isVertical) {
+        rail.style.height = (pct * 100).toFixed(2) + '%';
+        rail.style.width  = '100%';
+      } else {
+        rail.style.width  = (pct * 100).toFixed(2) + '%';
+        rail.style.height = '100%';
+      }
+    };
+    if (!reduced) {
+      tick();
+      window.addEventListener('scroll', tick, { passive: true });
+      window.addEventListener('resize', tick);
+    } else {
+      rail.style.width = '100%';
+      rail.style.height = '100%';
+      steps.forEach(s => s.classList.add('is-in'));
+    }
+  }
+</script>

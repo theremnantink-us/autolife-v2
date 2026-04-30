@@ -1,0 +1,204 @@
+---
+/**
+ * Contacts. Address, phone, email, hours — verbatim from
+ * public_html/index.php #contacts.
+ *
+ * Yandex Maps embed: switched to the iframe widget for the registered
+ * organisation (oid=15713727058) instead of the Constructor JS embed.
+ * The iframe is a single resource that brings its own CSS/JS scope and
+ * doesn't trigger the full constructor dependency graph (yastatic.net,
+ * core-renderer-tiles.maps.yandex.net, etc.) which our tight CSP would
+ * otherwise need to whitelist.
+ */
+const YA_PLACE_ID  = '15713727058';
+const ymapWidgetSrc =
+  `https://yandex.ru/map-widget/v1/?ll=37.018435%2C55.706530&z=16` +
+  `&mode=poi&poi%5Bpoint%5D=37.018435%2C55.706530` +
+  `&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D${YA_PLACE_ID}`;
+---
+<section class="contacts" id="contacts" aria-labelledby="contacts-heading">
+  <div class="container contacts__grid">
+    <div class="contacts__info">
+      <p class="eyebrow">Контакты</p>
+      <h2 id="contacts-heading" class="section__title">Наш автокомплекс</h2>
+      <p class="section__lead">Мы находимся на Рублёво-Успенском шоссе, недалеко от МКАД.</p>
+
+      <ul class="ci">
+        <li class="ci__item">
+          <span class="ci__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 22s7-7.5 7-12a7 7 0 1 0-14 0c0 4.5 7 12 7 12z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          </span>
+          <div>
+            <h3 class="ci__title">Адрес</h3>
+            <p class="ci__text">Рублёво-Успенское шоссе, п. Горки-10, строение 31А</p>
+          </div>
+        </li>
+
+        <li class="ci__item">
+          <span class="ci__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          <div>
+            <h3 class="ci__title">Телефон</h3>
+            <p class="ci__text"><a href="tel:+79035551055">+7 (903) 555-10-55</a></p>
+          </div>
+        </li>
+
+        <li class="ci__item">
+          <span class="ci__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 7l9 6 9-6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
+          </span>
+          <div>
+            <h3 class="ci__title">Email</h3>
+            <p class="ci__text"><a href="mailto:avtolive@gmail.com">avtolive@gmail.com</a></p>
+          </div>
+        </li>
+
+        <li class="ci__item">
+          <span class="ci__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <div>
+            <h3 class="ci__title">Часы работы</h3>
+            <p class="ci__text">
+              Пн–Пт: 9:00 — 21:00<br />
+              Сб–Вс: 10:00 — 20:00
+            </p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="contacts__cta">
+        <a href="#booking" class="btn btn--chrome">Онлайн-запись</a>
+        <a href="https://yandex.ru/maps/org/avtolayf/15713727058/" target="_blank" rel="noopener noreferrer" class="btn btn--ghost">Маршрут в Яндекс</a>
+      </div>
+    </div>
+
+    <div class="contacts__map" aria-label="Карта проезда">
+      <iframe
+        class="contacts__map-frame"
+        src={ymapWidgetSrc}
+        title="АвтоЛайф на Яндекс.Картах"
+        loading="lazy"
+        referrerpolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+        allow="geolocation"
+      ></iframe>
+      <noscript>
+        <a href="https://yandex.ru/maps/org/avtolayf/15713727058/" target="_blank" rel="noopener noreferrer">
+          Открыть карту в Яндекс
+        </a>
+      </noscript>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contacts {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    background: transparent;
+  }
+  .contacts__grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 1024px) {
+    .contacts__grid { grid-template-columns: 1fr 1.4fr; align-items: stretch; }
+  }
+
+  /* Glass panel — text was unreadable on top of the cinematic 3D backdrop.
+     Same chrome treatment we use elsewhere (booking form, footer card). */
+  .contacts__info {
+    position: relative;
+    padding: clamp(20px, 3vw, 32px);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--hairline-strong);
+    background:
+      linear-gradient(180deg, rgba(20, 22, 26, 0.62) 0%, rgba(12, 14, 18, 0.78) 100%);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 24px 48px -24px rgba(0,0,0,0.6);
+  }
+
+  .ci {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-block: var(--space-5);
+  }
+  .ci__item {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+  .ci__icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    background: var(--bg-elev);
+    color: var(--chrome-2);
+  }
+  .ci__title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+    margin-bottom: 4px;
+  }
+  .ci__text { color: var(--text); font-size: 15px; line-height: 1.55; }
+  .ci__text a { color: var(--text); transition: color var(--dur-fast) var(--ease-out); }
+  .ci__text a:hover { color: var(--chrome-1); }
+
+  .contacts__cta {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-top: var(--space-4);
+  }
+
+  /* Map gets the same glass chrome as the info column — translucent dark
+     gradient frame with backdrop-blur visible around the inset iframe so
+     the panel reads as one material, not a hard graphite block. */
+  .contacts__map {
+    position: relative;
+    padding: 4px;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--hairline-strong);
+    background:
+      linear-gradient(180deg, rgba(20, 22, 26, 0.62) 0%, rgba(12, 14, 18, 0.78) 100%);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 24px 48px -24px rgba(0,0,0,0.6);
+    min-height: 460px;
+    display: flex;
+    overflow: hidden;
+  }
+  .contacts__map-frame {
+    width: 100%;
+    height: 100%;
+    min-height: 452px;
+    border: 0;
+    border-radius: calc(var(--r-lg) - 4px);
+    display: block;
+    background: transparent;
+    /* Recolour the light Yandex tiles to dark — invert + hue rotate
+       restores brand greens/yellows close to original, while base
+       background turns near-black. saturate < 1 keeps it tasteful. */
+    filter: invert(0.92) hue-rotate(180deg) saturate(0.65) brightness(0.95) contrast(1.05);
+  }
+  @media (max-width: 767px) {
+    .contacts__map { min-height: 360px; }
+    .contacts__map-frame { min-height: 352px; }
+  }
+</style>

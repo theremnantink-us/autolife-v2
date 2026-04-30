@@ -1,0 +1,272 @@
+---
+import { promotions } from '../../data/promotions';
+---
+<section class="promos" id="promotions" aria-labelledby="promos-heading">
+  <div class="container">
+    <header class="section__head promos__head">
+      <p class="eyebrow">Акции</p>
+      <h2 id="promos-heading" class="section__title">Что выгодно прямо сейчас</h2>
+      <p class="section__lead">Сезонные предложения и популярные направления детейлинга по специальным условиям.</p>
+    </header>
+
+    <div class="promos__grid">
+      {promotions.map(p => (
+        <article class={`promo-card${p.highlight ? ' promo-card--highlight' : ''}`} data-promo-id={p.id}>
+          {p.highlight && <span class="promo-card__ring" aria-hidden="true"></span>}
+
+          <div class="promo-card__media">
+            <img
+              src={p.image}
+              alt={p.alt}
+              loading="lazy"
+              decoding="async"
+              width="960"
+              height="540"
+            />
+            <div class="promo-card__shade"></div>
+            <span class={`promo-card__badge${p.highlight ? ' promo-card__badge--chrome' : ''}`}>
+              {p.badge}
+            </span>
+            {p.note && <span class="promo-card__note">{p.note}</span>}
+          </div>
+
+          <div class="promo-card__body">
+            <h3 class="promo-card__title">{p.title}</h3>
+            <p class="promo-card__desc">{p.description}</p>
+            <button
+              type="button"
+              class={`btn ${p.highlight ? 'btn--chrome' : 'btn--ghost'} promo-card__cta`}
+              data-book-service={p.bookService}
+              data-book-price={p.bookPrice}
+            >
+              {p.cta}
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .promos {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    background: transparent;
+  }
+  .promos__head { max-width: 60ch; }
+
+  .promos__grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Highlights occupy more visual real estate on desktop */
+  @media (min-width: 1024px) {
+    .promos__grid {
+      grid-template-columns: 1fr 1fr 1.15fr 1.15fr;
+      grid-template-rows: auto auto;
+      gap: var(--space-5);
+    }
+    .promo-card { grid-column: span 2; }
+    .promo-card--highlight { grid-column: span 2; }
+  }
+  @media (max-width: 767px) {
+    .promos__grid { grid-template-columns: 1fr; gap: var(--space-3); }
+  }
+
+  .promo-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* Glass surface — matches the booking form. */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: transform var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                background var(--dur-base) var(--ease-out),
+                box-shadow var(--dur-base) var(--ease-out);
+  }
+  .promo-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--hairline-strong);
+    background: rgba(22, 25, 29, 0.72);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Highlight: animated chrome ring + soft inner glow */
+  .promo-card--highlight {
+    background: linear-gradient(180deg, var(--bg-elev) 0%, var(--graphite) 100%);
+    box-shadow: var(--shadow-card), inset 0 0 0 1px rgba(232,234,237,0.2);
+  }
+  .promo-card__ring {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--ring-angle, 0deg),
+      transparent 0deg,
+      rgba(232,234,237,0.6) 60deg,
+      transparent 120deg,
+      transparent 240deg,
+      rgba(154,160,166,0.4) 300deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    padding: 1.5px;
+    animation: ringSpin 8s linear infinite;
+    opacity: 0.85;
+  }
+  @keyframes ringSpin {
+    from { --ring-angle: 0deg; }
+    to   { --ring-angle: 360deg; }
+  }
+  @property --ring-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .promo-card__ring { animation: none; }
+  }
+
+  .promo-card__media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--graphite);
+  }
+  .promo-card--highlight .promo-card__media { aspect-ratio: 16 / 8.5; }
+  .promo-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .promo-card:hover .promo-card__media img { transform: scale(1.05); }
+
+  .promo-card__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, transparent 30%, rgba(8,9,11,0.55) 100%),
+      linear-gradient(90deg, rgba(8,9,11,0.18) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .promo-card__badge {
+    position: absolute;
+    top: 14px; left: 14px;
+    padding: 6px 12px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-1);
+    background: rgba(8,9,11,0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-sm);
+  }
+  .promo-card__badge--chrome {
+    background: var(--chrome-gradient);
+    color: #0b0c0e;
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: var(--shadow-chrome);
+  }
+  .promo-card__note {
+    position: absolute;
+    bottom: 14px; right: 14px;
+    padding: 6px 12px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--chrome-1);
+    background: rgba(8,9,11,0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-sm);
+  }
+  .promo-card--highlight .promo-card__note {
+    background: var(--chrome-gradient);
+    color: #0b0c0e;
+    border-color: rgba(255,255,255,0.25);
+  }
+
+  .promo-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    flex: 1;
+  }
+  .promo-card__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .promo-card--highlight .promo-card__title {
+    background: var(--chrome-gradient);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .promo-card__desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .promo-card__cta {
+    margin-top: auto;
+    align-self: flex-start;
+    padding: 12px 22px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+  }
+
+  @media (max-width: 767px) {
+    .promo-card__body { padding: var(--space-4); }
+    .promo-card__cta { width: 100%; align-self: stretch; }
+  }
+</style>
+
+<script>
+  /* Reuse the same booking-prefill pipeline as service cards. */
+  document.querySelectorAll<HTMLButtonElement>(
+    '.promo-card__cta[data-book-service]'
+  ).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById('booking');
+      const lenis = (window as any).__lenis;
+      const offset = -((document.querySelector('.hdr') as HTMLElement)?.offsetHeight ?? 56) - 12;
+      if (target && lenis?.scrollTo) lenis.scrollTo(target, { offset });
+      else target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        sessionStorage.setItem('autolife:booking-prefill', JSON.stringify({
+          service: btn.dataset.bookService,
+          price: btn.dataset.bookPrice,
+        }));
+        window.dispatchEvent(new CustomEvent('autolife:booking-prefill'));
+      } catch { /* noop */ }
+    });
+  });
+</script>

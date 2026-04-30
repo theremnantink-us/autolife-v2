@@ -1,0 +1,183 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/static/Header.astro';
+import Footer from '../components/static/Footer.astro';
+import PriceTable from '../components/static/PriceTable.astro';
+import pricelistJson from '../data/pricelist.json';
+
+interface PriceTableData {
+  h2: string;
+  h3: string;
+  headers: string[];
+  rows: string[][];
+}
+const tables = pricelistJson as PriceTableData[];
+
+// Map source headings → category sections matching homepage teaser anchors.
+const sectionMap = [
+  { id: 'wash',         title: 'Мойка автомобилей',     match: (t: PriceTableData) => t.h2 === 'Мойка автомобилей' },
+  { id: 'wash-extra',   title: 'Дополнительные услуги мойки', match: (t: PriceTableData) => t.h2 === 'Дополнительные услуги мойки' },
+  { id: 'protection',   title: 'Защитные покрытия и специализированные услуги', match: (t: PriceTableData) => t.h2 === 'Защитные покрытия и специализированные услуги' },
+  { id: 'detailing',    title: 'Детейлинг услуги',      match: (t: PriceTableData) => t.h2 === 'Детейлинг услуги' },
+  { id: 'tire',         title: 'Шиномонтаж',            match: (t: PriceTableData) => t.h2 === 'Шиномонтаж' },
+];
+
+const sections = sectionMap.map(s => ({
+  ...s,
+  tables: tables.filter(s.match),
+}));
+
+// Total positions counter — sum of all rows across all tables
+const totalPositions = tables.reduce((sum, t) => sum + t.rows.length, 0);
+---
+<Base title="Прайс-лист — АвтоЛайф · Мойка, Детейлинг, Шиномонтаж" description="Полный прайс-лист АвтоЛайф: цены на мойку, защитные покрытия, детейлинг и шиномонтаж. Цены привязаны к классу автомобиля и радиусу диска.">
+  <Header slot="header" />
+
+  <section class="pl-hero">
+    <div class="container">
+      <p class="eyebrow">Прайс-лист</p>
+      <h1 class="section__title pl-hero__title">Цены на услуги</h1>
+      <p class="section__lead">
+        Полный список — {totalPositions} позиций в 5 направлениях. Цены привязаны к классу автомобиля и радиусу диска. Указанные стоимости — справочные, итоговая сумма уточняется на месте после осмотра.
+      </p>
+      <nav class="pl-nav" aria-label="Разделы прайса">
+        {sections.map(s => (
+          <a class="pl-nav__chip" href={`#${s.id}`}>{s.title}</a>
+        ))}
+      </nav>
+    </div>
+  </section>
+
+  <section class="pl-body">
+    <div class="container">
+      {sections.map(section => (
+        <article class="pl-section" id={section.id}>
+          <header class="pl-section__head">
+            <h2 class="pl-section__title">{section.title}</h2>
+            <p class="pl-section__count">{section.tables.reduce((s, t) => s + t.rows.length, 0)} позиций</p>
+          </header>
+          {section.tables.map((tbl, i) => (
+            <PriceTable
+              table={tbl}
+              sectionId={section.tables.length > 1 ? `${section.id}-${i + 1}` : undefined}
+              title={tbl.h3 || tbl.h2}
+            />
+          ))}
+        </article>
+      ))}
+
+      <aside class="pl-foot glass">
+        <div>
+          <h3 class="pl-foot__title">Готовы записаться?</h3>
+          <p class="pl-foot__text">Звонок оператора подтвердит свободное время и согласует точную стоимость по вашему авто.</p>
+        </div>
+        <div class="pl-foot__cta">
+          <a href="/#booking" class="btn btn--chrome">Онлайн-запись</a>
+          <a href="tel:+79035551055" class="btn btn--ghost">+7 (903) 555-10-55</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</Base>
+
+<style>
+  .pl-hero {
+    padding-block: var(--space-8) var(--space-7);
+    background:
+      radial-gradient(80% 60% at 50% 0%, rgba(232,234,237,0.05) 0%, transparent 70%),
+      var(--bg);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .pl-hero__title {
+    margin-block: var(--space-2) var(--space-3);
+  }
+  .pl-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: var(--space-5);
+  }
+  .pl-nav__chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    background: var(--bg-elev);
+    border: 1px solid var(--hairline);
+    transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+  }
+  .pl-nav__chip:hover {
+    color: var(--chrome-1);
+    border-color: var(--chrome-3);
+  }
+
+  .pl-body { padding-block: var(--space-7) var(--space-9); }
+
+  .pl-section {
+    padding-block: var(--space-6);
+    scroll-margin-top: calc(var(--header-h) + 16px);
+  }
+  .pl-section + .pl-section { border-top: 1px solid var(--hairline); }
+
+  .pl-section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+    flex-wrap: wrap;
+  }
+  .pl-section__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(22px, 2.6vw, 28px);
+    color: var(--text);
+  }
+  .pl-section__count {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+  }
+
+  .pl-foot {
+    margin-top: var(--space-7);
+    padding: var(--space-6);
+    border-radius: var(--r-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+  }
+  .pl-foot__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .pl-foot__text {
+    color: var(--text-muted);
+    font-size: 14px;
+    max-width: 50ch;
+  }
+  .pl-foot__cta {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 767px) {
+    .pl-foot { padding: var(--space-4); }
+    .pl-foot__cta { width: 100%; }
+    .pl-foot__cta .btn { flex: 1; }
+  }
+</style>

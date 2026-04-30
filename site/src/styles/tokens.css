@@ -1,0 +1,110 @@
+/* Design tokens — AutoLife (chrome / graphite palette) */
+:root {
+  /* Surfaces */
+  --bg:           #08090b;
+  --bg-elev:      #111316;
+  --graphite:     #1a1d22;
+  --graphite-2:   #262a30;
+  --hairline:     rgba(255,255,255,0.08);
+  --hairline-strong: rgba(255,255,255,0.16);
+
+  /* Chrome */
+  --chrome-1:     #e8eaed;   /* highlight */
+  --chrome-2:     #9aa0a6;   /* mid */
+  --chrome-3:     #5f6368;   /* shadow */
+  --chrome-gradient: linear-gradient(135deg, #f5f6f7 0%, #c8ccd1 22%, #8c9197 50%, #50545a 78%, #2c2f33 100%);
+  --chrome-gradient-soft: linear-gradient(135deg, rgba(232,234,237,0.95) 0%, rgba(154,160,166,0.85) 50%, rgba(95,99,104,0.95) 100%);
+
+  /* Text */
+  --text:         #f5f6f7;
+  --text-muted:   #8a9099;
+  --text-dim:     #5a6068;
+
+  /* Status */
+  --success:      #6fbf9f;
+  --warning:      #d6b265;
+  --danger:       #cf6a5a;
+
+  /* Glass */
+  --glass-bg:     rgba(17,19,22,0.62);
+  --glass-blur:   18px;
+
+  /* Typography */
+  --font-wordmark: 'Orbitron', 'Michroma', system-ui, sans-serif;
+  --font-display:  'Montserrat', system-ui, sans-serif;
+  --font-body:     'Inter', system-ui, sans-serif;
+  --tracking-wordmark: 0.06em;
+  --tracking-eyebrow:  0.32em;
+
+  /* Sizing */
+  --container:    min(100% - 32px, 1280px);
+  --header-h:     64px;
+
+  /* Spacing scale (4px grid) */
+  --space-1:      4px;
+  --space-2:      8px;
+  --space-3:      12px;
+  --space-4:      16px;
+  --space-5:      24px;
+  --space-6:      32px;
+  --space-7:      48px;
+  --space-8:      64px;
+  --space-9:      96px;
+  --space-10:     128px;
+
+  /* Radius */
+  --r-sm:         6px;
+  --r-md:         10px;
+  --r-lg:         16px;
+  --r-xl:         24px;
+
+  /* Motion */
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:     160ms;
+  --dur-base:     280ms;
+  --dur-slow:     640ms;
+
+  /* Shadows */
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px var(--hairline);
+  --shadow-elev:    0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--hairline-strong);
+  --shadow-chrome:  inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.45);
+
+  /* Z-index scale */
+  --z-base:       1;
+  --z-content:    10;
+  --z-header:     50;
+  --z-overlay:    100;
+  --z-modal:      1000;
+}
+
+/* Wordmark utility (chrome-stamped letters) */
+.wordmark {
+  font-family: var(--font-wordmark);
+  font-weight: 800;
+  letter-spacing: var(--tracking-wordmark);
+  background: var(--chrome-gradient);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.04);
+  line-height: 1;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

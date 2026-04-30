@@ -1,0 +1,132 @@
+---
+/**
+ * Wordmark — same artwork as the footer (/IMG/wordmark.png), wrapped in an
+ * SVG so it can carry an animated specular sweep without losing fidelity to
+ * the source image. The SVG is just an `<image>` element pointing at the
+ * existing PNG asset — pixel-1:1 with what the footer renders.
+ *
+ * Props:
+ *   size       — 'hero' | 'header' | 'footer' — preset CSS sizes
+ *   class      — extra classes to attach
+ *   ariaLabel  — accessible name
+ */
+
+interface Props {
+  size?: 'hero' | 'header' | 'footer';
+  class?: string;
+  ariaLabel?: string;
+}
+
+const {
+  size = 'hero',
+  class: extraClass = '',
+  ariaLabel = 'AUTOLIFE',
+} = Astro.props as Props;
+
+// Source PNG dimensions: 734 × 67 (the actual wordmark.png file).
+// Keep aspect ratio in the SVG viewBox so the artwork is never distorted.
+const VB_W = 734;
+const VB_H = 67;
+---
+
+<svg
+  class={`wm wm--${size} ${extraClass}`}
+  viewBox={`0 0 ${VB_W} ${VB_H}`}
+  role="img"
+  aria-label={ariaLabel}
+  preserveAspectRatio="xMidYMid meet"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+>
+  <defs>
+    {/* Matte-metal gradient — softer mid-tones, no high-contrast «hot» spot.
+        Gives a brushed-aluminium / satin-steel feel instead of polished
+        chrome. Lighter on top, darker on bottom for subtle depth. */}
+    <linearGradient id="wm-matte" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#cfd3d8"/>
+      <stop offset="35%"  stop-color="#9aa0a6"/>
+      <stop offset="55%"  stop-color="#5e656c"/>
+      <stop offset="80%"  stop-color="#3c4248"/>
+      <stop offset="100%" stop-color="#272b30"/>
+    </linearGradient>
+
+    {/* Faint top edge sheen for "lit from above" suggestion (matte, not glossy). */}
+    <linearGradient id="wm-edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.32"/>
+      <stop offset="22%"  stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    {/* Brushed-metal noise — anisotropic horizontal grain, very low alpha. */}
+    <filter id="wm-brushed" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 1.4" numOctaves="2" seed="7" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0"/>
+    </filter>
+
+    {/* Soft, much subtler specular sweep (matte = barely-there shimmer). */}
+    <linearGradient id="wm-shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="45%"  stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="50%"  stop-color="#ffffff" stop-opacity="0.32"/>
+      <stop offset="55%"  stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    {/* The PNG itself acts as the mask alpha — anywhere the artwork is
+        opaque the matte fill is allowed through, the empty area around
+        the letters stays untouched.
+        BLACK rect above the «E» erases a tiny stray pixel cluster the
+        original artwork carried; the matte/brushed treatment was
+        amplifying it into something that read as a stress accent. The
+        rect lives in the empty zone above the letters (y < 7), so the
+        E itself isn't touched. */}
+    <mask id="wm-image-mask" maskUnits="userSpaceOnUse" x="0" y="0" width={VB_W} height={VB_H}>
+      <image href="/IMG/wordmark.png" xlink:href="/IMG/wordmark.png" x="0" y="0" width={VB_W} height={VB_H}/>
+      <rect x="652" y="0" width="78" height="7" fill="black"/>
+    </mask>
+  </defs>
+
+  {/* 1. Matte-metal vertical fill through the letterforms */}
+  <rect x="0" y="0" width={VB_W} height={VB_H} fill="url(#wm-matte)" mask="url(#wm-image-mask)"/>
+
+  {/* 2. Brushed-noise grain on top — anisotropic horizontal lines */}
+  <rect x="0" y="0" width={VB_W} height={VB_H} fill="white" filter="url(#wm-brushed)" mask="url(#wm-image-mask)" style="mix-blend-mode: overlay" opacity="0.45"/>
+
+  {/* 3. Faint top-edge bevel — light from above */}
+  <rect x="0" y="0" width={VB_W} height={VB_H} fill="url(#wm-edge)" mask="url(#wm-image-mask)" style="mix-blend-mode: screen"/>
+
+  {/* 4. Subtle drifting specular sweep, masked to letterforms */}
+  <g class="wm__shine" mask="url(#wm-image-mask)">
+    <rect x={-VB_W} y="0" width={VB_W} height={VB_H} fill="url(#wm-shine)"/>
+  </g>
+</svg>
+
+<style>
+  .wm {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 24px rgba(232, 234, 237, 0.18));
+  }
+
+  /* Size presets — the SVG scales to its container, these set sensible widths */
+  .wm--hero   { width: 100%; max-width: 100%; }
+  .wm--header { width: 132px; height: 28px; }
+  .wm--footer { width: 180px; height: 32px; }
+
+  /* Animated specular highlight — translates a wide gradient strip across,
+     clipped to the letter mask so only the metal "lights up". */
+  .wm__shine rect {
+    animation: wmShine 5.5s var(--ease-in-out, cubic-bezier(0.4,0,0.2,1)) infinite;
+    transform: translateX(0);
+    will-change: transform;
+  }
+  @keyframes wmShine {
+    0%   { transform: translateX(0); }
+    55%  { transform: translateX(1700px); }
+    100% { transform: translateX(1700px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wm__shine rect { animation: none; }
+  }
+</style>

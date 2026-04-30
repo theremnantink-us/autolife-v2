@@ -1,0 +1,350 @@
+---
+import { services, categories } from '../../data/services';
+
+const grouped = categories.map(c => ({
+  ...c,
+  items: services.filter(s => s.category === c.id),
+}));
+---
+<section class="services" id="services" aria-labelledby="services-heading">
+  <div class="container">
+    <header class="section__head services__head">
+      <p class="eyebrow">Услуги</p>
+      <h2 id="services-heading" class="section__title">Что мы делаем</h2>
+      <p class="section__lead">
+        Три направления автокомплекса. Услуги мойки доступны только в порядке живой очереди — детейлинг и шиномонтаж по записи.
+      </p>
+    </header>
+
+    <!-- Sticky tab bar — pure-CSS scroll-spy via :has + IntersectionObserver -->
+    <nav class="services-tabs" id="services-tabs" aria-label="Категории услуг">
+      <ul class="services-tabs__list">
+        {categories.map(c => (
+          <li>
+            <a href={`#${c.id}`} class="services-tab" data-tab={c.id}>
+              <span class="services-tab__label">{c.label}</span>
+              <span class="services-tab__count">{services.filter(s => s.category === c.id).length}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    {grouped.map(group => (
+      <div class="services-group" id={group.id}>
+        <h3 class="services-group__title">{group.title}</h3>
+        <div class="services-grid">
+          {group.items.map(s => (
+            <article class="service-card" data-cta={s.cta}>
+              <div class="service-card__media">
+                <img
+                  src={s.image}
+                  alt={s.alt}
+                  loading="lazy"
+                  decoding="async"
+                  width="640"
+                  height="360"
+                />
+                <div class="service-card__badge">{s.price}</div>
+              </div>
+              <div class="service-card__body">
+                <h4 class="service-card__title">{s.name}</h4>
+                <p class="service-card__desc">{s.description}</p>
+                <ul class="service-card__list">
+                  {s.includes.map(i => <li>{i}</li>)}
+                </ul>
+                {s.cta === 'book' ? (
+                  <button
+                    type="button"
+                    class="btn btn--chrome service-card__cta"
+                    data-book-service={s.name}
+                    data-book-price={s.priceValue}
+                  >
+                    Записаться онлайн
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    class="btn btn--ghost service-card__cta"
+                    data-queue-service={s.name}
+                  >
+                    Только живая очередь
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .services {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    /* Section is transparent so the 3D backdrop reads through gaps between
+       cards. Only the cards themselves carry solid bg-elev for legibility. */
+    background: transparent;
+  }
+  .services__head { max-width: 60ch; }
+
+  /* Sticky tabs */
+  .services-tabs {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 5;
+    margin-bottom: var(--space-7);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .services-tabs::-webkit-scrollbar { display: none; }
+  .services-tabs__list {
+    display: flex;
+    gap: 4px;
+    min-width: max-content;
+  }
+  .services-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--r-md);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+    white-space: nowrap;
+  }
+  .services-tab:hover { color: var(--text); }
+  .services-tab.is-active {
+    background: var(--chrome-gradient);
+    color: #0b0c0e;
+    box-shadow: var(--shadow-chrome);
+  }
+  .services-tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px; height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--chrome-1);
+  }
+  .services-tab.is-active .services-tab__count {
+    background: rgba(0,0,0,0.18);
+    color: #0b0c0e;
+  }
+
+  /* Groups */
+  .services-group { padding-block: var(--space-7); scroll-margin-top: calc(var(--header-h) + 84px); }
+  .services-group__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(22px, 2.6vw, 30px);
+    margin-bottom: var(--space-5);
+    color: var(--text);
+  }
+
+  /* Cards grid */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    /* Wider gaps so the 3D backdrop is visible between rows of cards. */
+    gap: var(--space-6);
+    row-gap: var(--space-7);
+  }
+
+  .service-card {
+    display: flex;
+    flex-direction: column;
+    /* Glassmorphic card — same recipe as the booking form panel. */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: transform var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                background var(--dur-base) var(--ease-out),
+                box-shadow var(--dur-base) var(--ease-out);
+    will-change: transform;
+  }
+  .service-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--hairline-strong);
+    background: rgba(22, 25, 29, 0.72);
+    box-shadow: var(--shadow-card);
+  }
+
+  .service-card__media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--graphite);
+  }
+  .service-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .service-card:hover .service-card__media img { transform: scale(1.04); }
+
+  .service-card__badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    padding: 6px 10px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-sm);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--chrome-1);
+    letter-spacing: 0.02em;
+  }
+
+  .service-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    flex: 1;
+  }
+  .service-card__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.25;
+    color: var(--text);
+  }
+  .service-card__desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .service-card__list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 0;
+    margin-block: var(--space-2);
+  }
+  .service-card__list li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .service-card__list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 9px;
+    width: 12px; height: 1.5px;
+    background: var(--chrome-2);
+  }
+  .service-card__cta {
+    margin-top: auto;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+
+  @media (max-width: 767px) {
+    .services-tabs { border-radius: var(--r-md); padding: 4px; }
+    .services-tab { padding: 8px 14px; font-size: 12px; }
+    .services-grid { gap: var(--space-3); }
+  }
+</style>
+
+<script>
+  /* Tab activation: scroll-spy on group sections via IntersectionObserver,
+     plus click-to-scroll. Pure DOM, no React. */
+  const tabs = Array.from(document.querySelectorAll<HTMLElement>('.services-tab'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('.services-group'));
+  if (tabs.length && groups.length) {
+    const setActive = (id: string) => {
+      tabs.forEach(t => t.classList.toggle('is-active', t.dataset.tab === id));
+    };
+    setActive(tabs[0].dataset.tab!);
+
+    const io = new IntersectionObserver(
+      entries => {
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      {
+        rootMargin: `-${(document.querySelector('.hdr') as HTMLElement)?.offsetHeight ?? 56}px 0px -55% 0px`,
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+      }
+    );
+    groups.forEach(g => io.observe(g));
+
+    /* Smooth-scroll respecting Lenis if it's running */
+    tabs.forEach(t => {
+      t.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = t.dataset.tab;
+        const target = id ? document.getElementById(id) : null;
+        if (!target) return;
+        const lenis = (window as any).__lenis;
+        if (lenis?.scrollTo) {
+          lenis.scrollTo(target, { offset: -((document.querySelector('.hdr') as HTMLElement)?.offsetHeight ?? 56) - 12 });
+        } else {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  /* Booking CTA: prefill the booking form when implemented; for now just
+     scroll to the booking section. data-book-service / data-book-price will
+     be picked up by the BookingForm island in a later commit. */
+  document.querySelectorAll<HTMLButtonElement>('[data-book-service]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById('booking');
+      const lenis = (window as any).__lenis;
+      const offset = -((document.querySelector('.hdr') as HTMLElement)?.offsetHeight ?? 56) - 12;
+      if (target && lenis?.scrollTo) lenis.scrollTo(target, { offset });
+      else target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Stash prefill for the booking form to consume
+      try {
+        sessionStorage.setItem('autolife:booking-prefill', JSON.stringify({
+          service: btn.dataset.bookService,
+          price: btn.dataset.bookPrice,
+        }));
+        window.dispatchEvent(new CustomEvent('autolife:booking-prefill'));
+      } catch { /* noop */ }
+    });
+  });
+
+  /* Live-queue CTA: dispatch event for the queue modal (mounted later). */
+  document.querySelectorAll<HTMLButtonElement>('[data-queue-service]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('autolife:open-queue', {
+        detail: { service: btn.dataset.queueService },
+      }));
+    });
+  });
+</script>

@@ -1,0 +1,420 @@
+---
+// Hero overlay (text + CTA). The 3D backdrop is mounted globally on the page
+// via <HeroBackdrop /> and animates as the user scrolls the whole document.
+//
+// Wordmark is now an inline SVG (see ./Wordmark.astro) — replaced the legacy
+// PNG-mask trick so the lockup scales crisply, has no stray "ink-blot"
+// accent over the «E», and animates without a raster mask.
+import Wordmark from './Wordmark.astro';
+---
+<section class="hero" id="home" aria-labelledby="hero-heading">
+  <!--
+    Stage spotlight pointing down at the AMG GT — white-light variant of
+    Aceternity's Lamp pattern. Two conic cones + a hot bar at the top.
+    Pure CSS, no JS, no shaders.
+  -->
+  <div class="hero-lamp" aria-hidden="true">
+    <div class="hero-lamp__bar"></div>
+    <div class="hero-lamp__glow"></div>
+    <div class="hero-lamp__cone hero-lamp__cone--left"></div>
+    <div class="hero-lamp__cone hero-lamp__cone--right"></div>
+  </div>
+
+  {/*
+    Layout adapted from Tailark `dusk-kit/hero-section/five` — content
+    hugs the bottom-left of a max-7xl centred container, capped at
+    ~600px wide. The WORDMARK breaks out of the column and spans the full
+    viewport width as a stage element, with the rest of the copy stacked
+    underneath in the constrained left column.
+  */}
+  {/* Pill is pinned to the TOP of the hero so it never overlaps the
+      full-width wordmark that sits at the vertical centre. */}
+  <span class="hero__pill">
+    <span class="hero__pill-dot" aria-hidden="true"></span>
+    RUBLEVO-USPENSKOYE · 32 KM
+  </span>
+
+  <h1 id="hero-heading" class="hero__wordmark">
+    <Wordmark size="hero" ariaLabel="AUTOLIFE" />
+  </h1>
+
+  <div class="hero__container">
+    <div class="hero__content">
+      <p class="hero__tagline">
+        Премиум-уход за автомобилем
+      </p>
+      <p class="hero__subtitle">
+        Мойка, детейлинг и шиномонтаж на Рублёво-Успенском шоссе.
+      </p>
+
+      <div class="hero__cta">
+        <a href="#booking" class="btn btn--chrome btn--lg hero__cta-primary">
+          <span>Онлайн-запись</span>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <path d="M3 8h10m0 0L9 4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </a>
+        <a href="#services" class="btn btn--ghost btn--lg">Наши услуги</a>
+      </div>
+    </div>
+  </div>
+
+  <a href="#services" class="hero__scroll" aria-label="Прокрутить вниз">
+    <span class="hero__scroll-text">Листайте</span>
+    <span class="hero__scroll-dot"></span>
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100dvh;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+    /* No background — the fixed CinematicCanvas backdrop shows through */
+  }
+
+  /* ===== Lamp ===== */
+  /* Span the FULL viewport width so the spill doesn't get visually cropped
+     into a vertical block. The bar + glow stay centred and narrow on top —
+     the cones radiate outward across the whole screen. */
+  .hero-lamp {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw;
+    max-width: 100%;
+    height: 78vh;
+    pointer-events: none;
+    z-index: 2;
+    /* Mask out the bottom so the cone fades softly into the scene */
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+            mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+  }
+  .hero-lamp__bar {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: clamp(180px, 26vw, 360px);
+    height: 2px;
+    border-radius: 2px;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.20) 12%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0.20) 88%, transparent 100%);
+    box-shadow:
+      0 0 12px rgba(255,255,255,0.65),
+      0 0 36px rgba(255,255,255,0.32),
+      0 0 80px rgba(255,255,255,0.20);
+    animation: lampPulse 4.6s var(--ease-in-out) infinite;
+  }
+  .hero-lamp__glow {
+    position: absolute;
+    top: -4px; left: 50%;
+    transform: translateX(-50%);
+    width: clamp(260px, 36vw, 540px);
+    height: 110px;
+    background: radial-gradient(ellipse at top, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0.10) 30%, transparent 65%);
+    filter: blur(8px);
+  }
+  .hero-lamp__cone {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    /* The two conic gradients meet at the centre — together they form a
+       narrow pyramid of light pointing straight down. Softer, more
+       diffuse on the sides per art direction. */
+  }
+  /* Wider cone arc so the light spreads across the whole viewport instead
+     of looking like a clipped vertical pillar. */
+  .hero-lamp__cone--left {
+    right: 50%;
+    background: conic-gradient(from 195deg at 100% 0%,
+      transparent 0deg,
+      transparent 8deg,
+      rgba(255,255,255,0.12) 24deg,
+      rgba(255,255,255,0.04) 50deg,
+      rgba(255,255,255,0.01) 72deg,
+      transparent 90deg);
+    filter: blur(24px);
+  }
+  .hero-lamp__cone--right {
+    left: 50%;
+    background: conic-gradient(from 75deg at 0% 0%,
+      transparent 0deg,
+      rgba(255,255,255,0.01) 18deg,
+      rgba(255,255,255,0.04) 40deg,
+      rgba(255,255,255,0.12) 66deg,
+      transparent 82deg,
+      transparent 90deg);
+    filter: blur(24px);
+  }
+  @keyframes lampPulse {
+    0%, 100% { opacity: 0.9; }
+    50%      { opacity: 1.0; }
+  }
+  @media (max-width: 599px) {
+    .hero-lamp { height: 58vh; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-lamp__bar { animation: none; }
+  }
+  .hero::before {
+    /* Dark wash for readability — sits ABOVE the cinematic canvas (z=1)
+       and the lamp (z=2) but BELOW the text/content (z=2-3). Combines a
+       uniform black tint with a soft radial vignette focused at the
+       bottom-left where the copy lives. */
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 65% at 25% 78%,
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0.30) 45%,
+        rgba(0, 0, 0, 0.12) 75%,
+        rgba(0, 0, 0, 0.00) 100%),
+      linear-gradient(180deg,
+        rgba(0, 0, 0, 0.10) 0%,
+        rgba(0, 0, 0, 0.20) 60%,
+        rgba(0, 0, 0, 0.35) 100%);
+  }
+  .hero::after {
+    /* Soft gradient floor → blends section transitions on top of canvas */
+    content: '';
+    position: absolute;
+    inset: 60% 0 0 0;
+    background: linear-gradient(180deg, transparent 0%, var(--bg) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Container holds the centered max-width box; flex pushes content to
+     the bottom of the viewport (matches the reference layout). */
+  .hero__container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 var(--space-5) clamp(var(--space-7), 12vh, var(--space-10));
+  }
+  @media (min-width: 1024px) {
+    .hero__container { padding-inline: var(--space-7); }
+  }
+
+  /* Text column — centred under the wordmark so the lockup, tagline,
+     subtitle and CTAs all sit on one vertical axis. Wider cap so the
+     CTAs never wrap or get squeezed. */
+  .hero__content {
+    width: 100%;
+    max-width: 760px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Pill / eyebrow — pinned to the TOP of the hero (just under header)
+     so it never overlaps the full-width wordmark sitting at the centre. */
+  .hero__pill {
+    position: absolute;
+    z-index: 3;
+    top: calc(var(--header-h) + var(--space-4));
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 10px;
+    background: rgba(8, 9, 11, 0.45);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-1);
+    white-space: nowrap;
+  }
+  @media (max-width: 599px) {
+    .hero__pill { font-size: 10px; padding: 5px 10px 5px 8px; }
+  }
+  .hero__pill-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--chrome-1);
+    box-shadow: 0 0 10px rgba(232, 234, 237, 0.7);
+    animation: pillPulse 2.6s var(--ease-in-out) infinite;
+  }
+  @keyframes pillPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Full-bleed wordmark — perfectly centred, vertically pinned above the
+     bottom-left content column. Same artwork as the footer (PNG) but with
+     a matte-metal treatment applied via the SVG mask. Side padding keeps
+     the lockup from kissing the edges of the viewport. */
+  .hero__wordmark {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    margin: 0;
+    padding-inline: clamp(20px, 4vw, 56px);
+    line-height: 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+  }
+  .hero__wordmark .wm { width: 100%; max-width: 100%; }
+  @media (max-width: 599px) {
+    .hero__wordmark { padding-inline: 16px; }
+  }
+
+  /* Tagline — short bold marketing line. Forced to a single line so
+     "Премиум-уход за автомобилем" doesn't wrap to two rows. */
+  .hero__tagline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(18px, 2.6vw, 30px);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: var(--space-2);
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
+    white-space: nowrap;
+  }
+  @media (max-width: 360px) {
+    /* Last-resort downsize for the smallest phones so the line still fits. */
+    .hero__tagline { font-size: 16px; letter-spacing: -0.02em; }
+  }
+  .hero__subtitle {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(15px, 1.5vw, 18px);
+    color: var(--text-muted);
+    margin-bottom: var(--space-5);
+    line-height: 1.5;
+    max-width: 50ch;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  }
+
+  /* CTAs — primary chrome (rounded pill, with arrow) + ghost beside it.
+     Layout reference: tailark hero-section-5 (h-12 rounded-full, gap-2). */
+  .hero__cta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: nowrap;        /* always stay in a single row */
+    align-items: center;
+    justify-content: center;
+  }
+  .hero__cta .btn--lg {
+    height: 48px;
+    padding: 0 22px;
+    border-radius: 999px;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;      /* never wrap label */
+  }
+  .hero__cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 18px;
+  }
+  .hero__cta-primary svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+    flex-shrink: 0;
+  }
+  .hero__cta-primary:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* Scroll cue — bottom-right on desktop (content is bottom-left so they
+     don't fight). On mobile we reposition to bottom-center below the CTAs. */
+  .hero__scroll {
+    position: absolute;
+    bottom: clamp(40px, 6vh, 80px);
+    right: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--chrome-2);
+    font-family: var(--font-display);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    z-index: 3;
+    opacity: 0.78;
+  }
+  @media (min-width: 1024px) {
+    .hero__scroll { right: var(--space-7); }
+  }
+  .hero__scroll-text { white-space: nowrap; }
+  .hero__scroll-dot {
+    width: 1.5px;
+    height: 28px;
+    background: linear-gradient(180deg, var(--chrome-1), transparent);
+    animation: heroScrollPulse 2s var(--ease-in-out) infinite;
+  }
+  @keyframes heroScrollPulse {
+    0%, 100% { transform: scaleY(0.4) translateY(-6px); opacity: 0.4; }
+    50%      { transform: scaleY(1)   translateY( 0px); opacity: 1.0; }
+  }
+
+  @media (max-width: 767px) {
+    .hero__container { padding-bottom: clamp(var(--space-8), 22vh, var(--space-9)); }
+    /* Always single-row on mobile: forces both CTAs to share the width and
+       guarantees the "Листайте" cue underneath stays visible without
+       scrolling. */
+    .hero__cta { gap: 8px; flex-wrap: nowrap; justify-content: center; width: 100%; }
+    .hero__cta .btn--lg {
+      height: 44px;
+      padding: 0 14px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+    .hero__cta-primary { padding-right: 12px; gap: 6px; }
+    .hero__cta-primary svg { width: 12px; height: 12px; }
+    /* Mobile: scroll cue moves to bottom-CENTER, sits BELOW the CTAs but
+       stays inside the viewport so it's still visible. */
+    .hero__scroll {
+      bottom: clamp(14px, 3vh, 28px);
+      right: auto;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      letter-spacing: 0.26em;
+      opacity: 0.75;
+    }
+    .hero__scroll-dot { height: 18px; }
+    /* Don't constrain the tagline block — the line stays nowrap and is
+       sized only by clamp() font-size, so it centers cleanly in the
+       column instead of overflowing a too-narrow 18ch box. */
+  }
+  /* Very narrow phones (≤ 360px) — drop the icon to keep text on one line. */
+  @media (max-width: 360px) {
+    .hero__cta-primary svg { display: none; }
+    .hero__cta-primary { padding-right: 12px; }
+    .hero__cta .btn--lg { font-size: 11px; padding: 0 10px; letter-spacing: 0.04em; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__scroll-dot { animation: none; }
+  }
+</style>

@@ -1,0 +1,251 @@
+/* Global styles — AutoLife redesign v2 */
+@import './reset.css';
+@import './tokens.css';
+
+/* Fonts: served via Google Fonts in Base layout (preconnect + display=swap).
+   We only declare local fallback shapes here to keep CLS low. */
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* ───────────────────── Cinematic backdrop ─────────────────────
+   The 3D canvas + gradient fallback sit behind the page. A scroll-
+   driven ScrollTrigger in Base.astro updates --hero-blur / --hero-sat
+   and toggles the .hero-foreground class on <html>:
+
+     • At Y = 0           — heavy blur, low saturation (frosted glass)
+     • Y → ~35vh          — blur tapers to 0, saturation back to normal
+     • Y > 50vh           — canvas lifts ABOVE hero text (z-index swap)
+*/
+:root {
+  --hero-blur: 28px;
+  --hero-sat: 0.6;
+  --hero-text-op: 1;
+  --canvas-z: 1;
+}
+.cinematic-canvas,
+.hero-fallback {
+  z-index: var(--canvas-z, 1);
+  filter: blur(var(--hero-blur, 0px)) saturate(var(--hero-sat, 1));
+  will-change: filter;
+  /* Slightly longer than the scrub interval for visual easing — the
+     formula already smooths, this just blends frame-to-frame steps. */
+  transition: filter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root.hero-foreground { --canvas-z: 3; }   /* > hero text (z=2), < header (z=50) */
+
+/* Hero content fades back as the car comes forward — masks the z-swap. */
+.hero__container,
+.hero__wordmark,
+.hero__pill {
+  opacity: var(--hero-text-op, 1);
+  transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --hero-blur: 0px; --hero-sat: 1; --hero-text-op: 1; }
+  .cinematic-canvas, .hero-fallback { transition: none; }
+  .hero__container, .hero__wordmark, .hero__pill { transition: none; }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+  /* `clip` instead of `hidden` — `overflow-x: hidden` on body kills
+     `position: sticky` for ALL descendants (header, services tabs, etc.). */
+  overflow-x: clip;
+}
+
+.container {
+  width: var(--container);
+  margin-inline: auto;
+}
+
+/* Section rhythm */
+.section {
+  padding-block: var(--space-9);
+  position: relative;
+}
+@media (max-width: 767px) {
+  .section { padding-block: var(--space-7); }
+}
+
+.section__head {
+  position: relative;
+  z-index: 1;
+  /* More breathing room between heading and the cards/blocks below. */
+  margin-bottom: var(--space-8);
+  /* Subtle dark "ink" strip behind the heading text so it stays readable
+     even when a chrome highlight sweeps across the AMG GT behind it. */
+  padding: var(--space-3) var(--space-4);
+  margin-left: calc(var(--space-4) * -1);
+  margin-right: calc(var(--space-4) * -1);
+  background: linear-gradient(180deg,
+    rgba(8,9,11,0.55) 0%,
+    rgba(8,9,11,0.32) 60%,
+    rgba(8,9,11,0.0) 100%);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  border-radius: var(--r-md);
+  /* Anchor jumps land below the fixed header instead of behind it. */
+  scroll-margin-top: calc(var(--header-h) + var(--space-3));
+}
+@media (max-width: 767px) {
+  .section__head { margin-bottom: var(--space-6); }
+}
+.section__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-3);
+  color: var(--text);
+  text-shadow: 0 4px 28px rgba(0,0,0,0.95), 0 1px 0 rgba(0,0,0,0.7);
+}
+.section__lead {
+  color: #d3d6da;
+  font-size: clamp(15px, 1.4vw, 17px);
+  max-width: 60ch;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.9);
+}
+.eyebrow {
+  color: var(--chrome-1);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+}
+
+/* Glass surface utility */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--hairline);
+}
+
+/* Buttons — all variants share the same pill radius for consistency. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: transform var(--dur-fast) var(--ease-out),
+              background var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+  will-change: transform;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn--chrome {
+  background: var(--chrome-gradient);
+  color: #0b0c0e;
+  box-shadow: var(--shadow-chrome), 0 6px 20px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.btn--chrome:hover {
+  box-shadow: var(--shadow-chrome), 0 10px 30px rgba(0,0,0,0.55);
+}
+
+.btn--ghost {
+  background: rgba(8, 9, 11, 0.42);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  color: var(--chrome-1);
+  border: 1px solid var(--hairline-strong);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 6px 18px rgba(0,0,0,0.35);
+}
+.btn--ghost:hover {
+  background: rgba(20, 22, 26, 0.55);
+  border-color: var(--chrome-2);
+}
+
+/* Skip link for a11y */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--chrome-1);
+  color: var(--bg);
+  padding: 8px 12px;
+  z-index: var(--z-modal);
+  border-radius: 0 0 var(--r-sm) 0;
+}
+.skip-link:focus-visible { left: 0; }
+
+/* Hide visually but keep accessible */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+/* Honeypot — invisible, accessible to bots only */
+.hp-field {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important; height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Flatpickr — graphite/chrome theme overrides on top of the dark base */
+.flatpickr-calendar {
+  background: var(--bg-elev) !important;
+  border: 1px solid var(--hairline-strong) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow-elev) !important;
+  font-family: var(--font-body) !important;
+}
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after,
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after { border-color: transparent !important; }
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month,
+.flatpickr-monthDropdown-months,
+.flatpickr-weekday { color: var(--text) !important; background: transparent !important; }
+.flatpickr-current-month input.cur-year { color: var(--text) !important; }
+.flatpickr-prev-month, .flatpickr-next-month { fill: var(--chrome-2) !important; color: var(--chrome-2) !important; }
+.flatpickr-prev-month:hover, .flatpickr-next-month:hover { color: var(--chrome-1) !important; fill: var(--chrome-1) !important; }
+.flatpickr-day { color: var(--text) !important; border-radius: 6px !important; }
+.flatpickr-day.today { border-color: var(--chrome-3) !important; }
+.flatpickr-day:hover, .flatpickr-day:focus { background: var(--graphite-2) !important; border-color: var(--chrome-3) !important; }
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.selected:hover {
+  background: linear-gradient(135deg, #e8eaed, #9aa0a6) !important;
+  color: #0b0c0e !important;
+  border-color: transparent !important;
+  font-weight: 600 !important;
+}
+.flatpickr-day.disabled,
+.flatpickr-day.flatpickr-disabled { color: var(--text-dim) !important; opacity: 0.35 !important; }
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay { color: var(--text-dim) !important; }
+.flatpickr-time { background: var(--graphite) !important; border-top: 1px solid var(--hairline) !important; }
+.flatpickr-time input,
+.flatpickr-time .flatpickr-am-pm,
+.flatpickr-time .flatpickr-time-separator { color: var(--text) !important; }
+.flatpickr-time input:hover,
+.flatpickr-time input:focus { background: var(--graphite-2) !important; }
+.numInputWrapper:hover,
+.numInputWrapper:focus-within { background: var(--graphite-2) !important; }
+.numInputWrapper span.arrowUp,
+.numInputWrapper span.arrowDown { border: 0 !important; }
+.numInputWrapper span.arrowUp::after { border-bottom-color: var(--chrome-2) !important; }
+.numInputWrapper span.arrowDown::after { border-top-color: var(--chrome-2) !important; }

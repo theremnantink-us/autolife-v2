@@ -1,0 +1,475 @@
+---
+/**
+ * Employees — public team carousel section.
+ *
+ * Renders a horizontal scroll-snap row of profile cards. Each card has its
+ * own auto-rotating testimonial slot inside (so the section feels alive
+ * without forcing a single-card carousel that hides the rest of the team).
+ *
+ * Bookable cards expose a "Записаться" CTA that prefills the booking form's
+ * master selector via the existing `autolife:booking-prefill` event channel.
+ */
+import { employees } from '../../data/employees';
+---
+<section class="emp" id="team" aria-labelledby="team-heading">
+  <div class="container">
+    <header class="section__head emp__head">
+      <p class="eyebrow">Команда</p>
+      <h2 id="team-heading" class="section__title">Кто работает с вашим автомобилем</h2>
+      <p class="section__lead">
+        Каждый мастер — со своей специализацией и реальными отзывами. Можно записаться
+        к конкретному человеку или попасть в порядке живой очереди.
+      </p>
+    </header>
+
+    <div class="emp__rail-wrap">
+      <div class="emp__rail" id="emp-rail" tabindex="0" role="region" aria-label="Карусель сотрудников">
+        {employees.map((e) => (
+          <article
+            class={`emp-card${e.role === 'admin-shift' ? ' emp-card--admin' : ''}`}
+            data-employee-id={e.id}
+            id={`emp-${e.slug}`}
+          >
+            <div class="emp-card__media">
+              <img src={e.photo} alt={`${e.name} — ${e.position}`} loading="lazy" decoding="async" />
+              <div class="emp-card__shade"></div>
+              {e.yearsExp != null && (
+                <span class="emp-card__chip-exp">опыт {e.yearsExp} лет</span>
+              )}
+              {e.role === 'admin-shift' && (
+                <span class="emp-card__chip-admin">не записывается</span>
+              )}
+            </div>
+
+            <div class="emp-card__body">
+              <h3 class="emp-card__name">{e.name}</h3>
+              <p class="emp-card__pos">{e.position}</p>
+
+              <ul class="emp-card__tags" aria-label="Специализация">
+                {e.specialties.slice(0, 3).map((t) => (
+                  <li>{t}</li>
+                ))}
+              </ul>
+
+              <p class="emp-card__desc">{e.description}</p>
+
+              <div class="emp-card__rev" aria-label="Отзывы">
+                <div class="emp-card__rev-track" data-rev-track>
+                  {e.reviews.map((r, i) => (
+                    <figure class={`rev${i === 0 ? ' is-active' : ''}`} data-rev-index={i}>
+                      <div class="rev__stars" aria-label={`Оценка ${r.rating} из 5`}>
+                        {Array.from({ length: 5 }).map((_, s) => (
+                          <span class={s < r.rating ? 'is-on' : ''}>★</span>
+                        ))}
+                      </div>
+                      <blockquote class="rev__text">«{r.text}»</blockquote>
+                      <figcaption class="rev__meta">
+                        <span class="rev__author">— {r.author}</span>
+                        <span class="rev__date">{new Date(r.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+                {e.reviews.length > 1 && (
+                  <div class="emp-card__rev-dots" data-rev-dots role="tablist">
+                    {e.reviews.map((_, i) => (
+                      <button
+                        type="button"
+                        class={`rev-dot${i === 0 ? ' is-active' : ''}`}
+                        data-rev-dot={i}
+                        aria-label={`Отзыв ${i + 1}`}
+                        role="tab"
+                        aria-selected={i === 0 ? 'true' : 'false'}
+                      ></button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {e.isBookable ? (
+                <button
+                  type="button"
+                  class="btn btn--chrome emp-card__cta"
+                  data-book-master={e.id}
+                  data-book-master-name={e.name}
+                >
+                  Записаться к {e.name.split(' ')[0]}
+                </button>
+              ) : (
+                <p class="emp-card__non-book">Администратор смены — встретит и оформит вас на месте.</p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div class="emp__nav">
+        <button type="button" class="emp__nav-btn" data-rail-prev aria-label="Предыдущий">‹</button>
+        <a href="/staff" class="emp__see-all">Все сотрудники →</a>
+        <button type="button" class="emp__nav-btn" data-rail-next aria-label="Следующий">›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .emp {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    background: transparent;
+  }
+  .emp__head { max-width: 60ch; margin-bottom: var(--space-6); }
+
+  .emp__rail-wrap { position: relative; }
+  .emp__rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(320px, 360px);
+    gap: var(--space-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--space-1);
+    padding-block: 4px;
+    padding-inline: 2px;
+    /* Chrome scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: var(--chrome-2) transparent;
+  }
+  .emp__rail::-webkit-scrollbar { height: 6px; }
+  .emp__rail::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, var(--chrome-2), var(--chrome-1));
+    border-radius: 999px;
+  }
+  .emp__rail:focus-visible { outline: 2px solid var(--chrome-2); outline-offset: 4px; border-radius: var(--r-md); }
+
+  .emp-card {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    /* Glass card — matches booking-form panel. */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: transform var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                background var(--dur-base) var(--ease-out),
+                box-shadow var(--dur-base) var(--ease-out);
+  }
+  .emp-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--hairline-strong);
+    background: rgba(22, 25, 29, 0.72);
+    box-shadow: var(--shadow-card);
+  }
+  .emp-card--admin {
+    background: rgba(14, 16, 19, 0.72);
+  }
+
+  .emp-card__media {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--graphite);
+  }
+  .emp-card__media img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .emp-card:hover .emp-card__media img { transform: scale(1.04); }
+  .emp-card__shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(8,9,11,0.55) 100%);
+    pointer-events: none;
+  }
+  .emp-card__chip-exp,
+  .emp-card__chip-admin {
+    position: absolute;
+    top: 14px;
+    padding: 5px 10px;
+    border-radius: var(--r-sm);
+    background: rgba(8,9,11,0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-strong);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--chrome-1);
+  }
+  .emp-card__chip-exp { right: 14px; }
+  .emp-card__chip-admin { left: 14px; color: var(--text-muted); }
+
+  .emp-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: var(--space-5);
+    flex: 1;
+  }
+  .emp-card__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .emp-card__pos {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+    margin-top: -6px;
+  }
+  .emp-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+  }
+  .emp-card__tags li {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 9px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-sm);
+    background: rgba(8,9,11,0.4);
+  }
+  .emp-card__desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  /* Reviews mini-carousel */
+  .emp-card__rev {
+    position: relative;
+    margin-top: 4px;
+    padding: var(--space-3);
+    border: 1px solid var(--hairline);
+    background: rgba(8,9,11,0.32);
+    border-radius: var(--r-md);
+    min-height: 132px;
+  }
+  .emp-card__rev-track { position: relative; }
+  .rev {
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rev.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    position: static;
+  }
+  .rev__stars {
+    display: flex;
+    gap: 2px;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1;
+  }
+  .rev__stars .is-on { color: #ffd76a; }
+  .rev__text {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .rev__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: auto;
+  }
+  .rev__author { color: var(--chrome-2); }
+
+  .emp-card__rev-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .rev-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--hairline-strong);
+    border: none;
+    transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+    cursor: pointer;
+  }
+  .rev-dot.is-active { background: var(--chrome-1); transform: scale(1.3); }
+
+  .emp-card__cta {
+    margin-top: auto;
+    padding: 12px 18px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+  }
+  .emp-card__non-book {
+    margin-top: auto;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-style: italic;
+    padding-top: 4px;
+  }
+
+  .emp__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  .emp__nav-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--hairline-strong);
+    color: var(--chrome-1);
+    font-size: 22px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+    cursor: pointer;
+  }
+  .emp__nav-btn:hover {
+    background: rgba(232,234,237,0.15);
+    transform: scale(1.05);
+  }
+  .emp__see-all {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--chrome-1);
+    padding: 12px 18px;
+    /* Glass pill so the link reads on the bare 3D backdrop. */
+    background: rgba(8, 9, 11, 0.45);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-md);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    transition: color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out);
+  }
+  .emp__see-all:hover {
+    color: var(--text);
+    border-color: var(--chrome-2);
+    background: rgba(20, 22, 26, 0.6);
+  }
+
+  @media (max-width: 599px) {
+    .emp__rail { grid-auto-columns: 86vw; }
+    .emp-card__media { aspect-ratio: 4 / 3; }
+    .emp__see-all { padding: 8px 10px; font-size: 11px; }
+  }
+</style>
+
+<script>
+  /* ───────── Review mini-carousels (per card, independent) ───────── */
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.emp-card'));
+  const ROTATE_MS = 6500;
+  const timers = new Map<HTMLElement, number>();
+
+  function paint(card: HTMLElement, idx: number) {
+    const items = Array.from(card.querySelectorAll<HTMLElement>('[data-rev-index]'));
+    const dots  = Array.from(card.querySelectorAll<HTMLButtonElement>('[data-rev-dot]'));
+    items.forEach((el, i) => el.classList.toggle('is-active', i === idx));
+    dots.forEach((el, i) => {
+      const on = i === idx;
+      el.classList.toggle('is-active', on);
+      el.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+
+  function start(card: HTMLElement) {
+    const items = card.querySelectorAll<HTMLElement>('[data-rev-index]');
+    if (items.length < 2) return;
+    let i = 0;
+    const tick = () => {
+      i = (i + 1) % items.length;
+      paint(card, i);
+    };
+    const id = window.setInterval(tick, ROTATE_MS);
+    timers.set(card, id);
+  }
+  function stop(card: HTMLElement) {
+    const id = timers.get(card);
+    if (id) { window.clearInterval(id); timers.delete(card); }
+  }
+
+  cards.forEach(card => {
+    start(card);
+    // pause on hover/focus, resume on leave
+    card.addEventListener('mouseenter', () => stop(card));
+    card.addEventListener('mouseleave', () => start(card));
+    card.addEventListener('focusin',    () => stop(card));
+    card.addEventListener('focusout',   () => start(card));
+
+    // dots — manual select
+    card.querySelectorAll<HTMLButtonElement>('[data-rev-dot]').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const idx = Number(dot.dataset.revDot ?? 0);
+        paint(card, idx);
+        stop(card); start(card); // reset cycle
+      });
+    });
+  });
+
+  /* ───────── Rail navigation ───────── */
+  const rail = document.getElementById('emp-rail') as HTMLElement | null;
+  const prev = document.querySelector<HTMLButtonElement>('[data-rail-prev]');
+  const next = document.querySelector<HTMLButtonElement>('[data-rail-next]');
+
+  function railStep(delta: number) {
+    if (!rail) return;
+    const card = rail.querySelector<HTMLElement>('.emp-card');
+    const w = (card?.offsetWidth ?? 320) + 16;
+    rail.scrollBy({ left: delta * w, behavior: 'smooth' });
+  }
+  prev?.addEventListener('click', () => railStep(-1));
+  next?.addEventListener('click', () => railStep(+1));
+
+  /* ───────── Booking master prefill ───────── */
+  document.querySelectorAll<HTMLButtonElement>('[data-book-master]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById('booking');
+      const lenis = (window as any).__lenis;
+      const offset = -((document.querySelector('.hdr') as HTMLElement)?.offsetHeight ?? 56) - 12;
+      if (target && lenis?.scrollTo) lenis.scrollTo(target, { offset });
+      else target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        sessionStorage.setItem('autolife:booking-prefill', JSON.stringify({
+          master: btn.dataset.bookMaster,
+          masterName: btn.dataset.bookMasterName,
+        }));
+        window.dispatchEvent(new CustomEvent('autolife:booking-prefill'));
+      } catch { /* noop */ }
+    });
+  });
+</script>

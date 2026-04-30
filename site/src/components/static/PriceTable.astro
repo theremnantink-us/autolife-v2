@@ -1,0 +1,223 @@
+---
+interface PriceTable {
+  h2: string;
+  h3: string;
+  headers: string[];
+  rows: string[][];
+}
+
+interface Props {
+  table: PriceTable;
+  sectionId?: string;
+  /** Display title override; falls back to h3 || h2 */
+  title?: string;
+}
+
+const { table, sectionId, title } = Astro.props as Props;
+const heading = title ?? table.h3 ?? table.h2;
+
+// Column headers: header[0] is the service name; rest are price columns
+const colHeaders = table.headers.slice(1);
+const isMatrix = colHeaders.length > 1;
+---
+<div class="ptable" id={sectionId} data-cols={colHeaders.length}>
+  <header class="ptable__head">
+    <h3 class="ptable__title">{heading}</h3>
+    {isMatrix && (
+      <div class="ptable__selector" role="tablist" aria-label="Колонка для отображения">
+        {colHeaders.map((h, i) => (
+          <button
+            type="button"
+            class={`ptable__chip${i === 0 ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            data-col={i + 1}
+          >{h}</button>
+        ))}
+      </div>
+    )}
+  </header>
+
+  <div class="ptable__scroll">
+    <table class="ptable__grid">
+      <thead>
+        <tr>
+          {table.headers.map((h, i) => (
+            <th
+              scope="col"
+              class={i === 0 ? 'ptable__th--service' : 'ptable__th--price'}
+              data-col={i}
+            >{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {table.rows.map(row => (
+          <tr>
+            {row.map((cell, i) => (
+              <td
+                class={i === 0 ? 'ptable__td--service' : 'ptable__td--price'}
+                data-col={i}
+              >{cell}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .ptable {
+    background: var(--bg-elev);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    margin-bottom: var(--space-5);
+  }
+  .ptable__head {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--hairline);
+    background: var(--graphite);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .ptable__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text);
+  }
+
+  /* Class/radius selector — only useful on mobile (matrix collapses to one
+     visible column). On desktop the full table is already rendered. */
+  .ptable__selector { display: none; gap: 6px; flex-wrap: wrap; }
+  @media (max-width: 767px) {
+    .ptable__selector { display: flex; }
+  }
+  .ptable__chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg-elev);
+    border: 1px solid var(--hairline);
+    transition: color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
+    white-space: nowrap;
+  }
+  .ptable__chip:hover {
+    color: var(--text);
+    border-color: var(--hairline-strong);
+  }
+  .ptable__chip.is-active {
+    background: var(--chrome-gradient);
+    color: #0b0c0e;
+    border-color: rgba(255,255,255,0.25);
+  }
+
+  /* Table */
+  .ptable__scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .ptable__grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .ptable__grid th,
+  .ptable__grid td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+  .ptable__grid thead th {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+    background: var(--bg-elev);
+    position: sticky;
+    top: 0;
+    border-bottom: 1px solid var(--hairline-strong);
+  }
+  .ptable__th--service,
+  .ptable__td--service {
+    color: var(--text);
+    min-width: 240px;
+  }
+  .ptable__td--service {
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .ptable__td--price {
+    color: var(--chrome-1);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
+  .ptable__grid tr:last-child td { border-bottom: 0; }
+  .ptable__grid tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* Mobile: sticky first column + only show selected price column */
+  @media (max-width: 767px) {
+    .ptable__head { padding: var(--space-3) var(--space-4); }
+    .ptable__title { font-size: 16px; }
+    .ptable__grid th, .ptable__grid td { padding: 10px 12px; font-size: 13px; }
+    .ptable__th--service, .ptable__td--service {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--bg-elev);
+      box-shadow: 1px 0 0 var(--hairline);
+      min-width: 60vw;
+      max-width: 60vw;
+    }
+    .ptable__grid thead .ptable__th--service { background: var(--bg-elev); z-index: 2; }
+    /* Hide all price columns except the active one */
+    .ptable[data-active-col] .ptable__th--price,
+    .ptable[data-active-col] .ptable__td--price { display: none; }
+    .ptable[data-active-col] .ptable__th--price.is-shown,
+    .ptable[data-active-col] .ptable__td--price.is-shown { display: table-cell; }
+  }
+</style>
+
+<script>
+  /* Mobile column-selector: show only one price column at a time. */
+  const setup = (root: HTMLElement) => {
+    const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('.ptable__chip'));
+    const apply = (col: number) => {
+      root.dataset.activeCol = String(col);
+      root.querySelectorAll<HTMLElement>('[data-col]').forEach(el => {
+        const c = Number(el.dataset.col);
+        const isService = c === 0;
+        if (!isService) {
+          el.classList.toggle('is-shown', c === col);
+        }
+      });
+      chips.forEach(ch => {
+        const on = Number(ch.dataset.col) === col;
+        ch.classList.toggle('is-active', on);
+        ch.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    };
+    chips.forEach(ch => {
+      ch.addEventListener('click', () => apply(Number(ch.dataset.col)));
+    });
+    if (chips.length) apply(Number(chips[0].dataset.col));
+  };
+  document.querySelectorAll<HTMLElement>('.ptable').forEach(setup);
+</script>

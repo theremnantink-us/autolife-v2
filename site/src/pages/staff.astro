@@ -1,0 +1,309 @@
+---
+/**
+ * /staff — full team page. ВРЕМЕННО ОТКЛЮЧЕНА — редирект на главную.
+ * Раскомментировать блок ниже, чтобы восстановить страницу.
+ */
+return Astro.redirect('/', 302);
+
+/*
+import Base from '../layouts/Base.astro';
+import Header from '../components/static/Header.astro';
+import Footer from '../components/static/Footer.astro';
+import { employees } from '../data/employees';
+
+const title = 'Команда — АвтоЛайф';
+const description = 'Мастера и администраторы автокомплекса «АвтоЛайф» на Рублёво-Успенском шоссе. Запись к конкретному мастеру онлайн.';
+*/
+---
+<Base title={title} description={description}>
+  <Header slot="header" />
+
+  <main class="staff" id="staff">
+    <div class="container">
+      <header class="staff__head section__head">
+        <p class="eyebrow">Команда</p>
+        <h1 class="section__title">Все, кто работает в боксе</h1>
+        <p class="section__lead">
+          Каждый сотрудник на странице — со своей специализацией, опытом и реальными
+          отзывами. Можно записаться к нужному человеку или попасть к свободному
+          мастеру в порядке живой очереди.
+        </p>
+      </header>
+
+      <div class="staff__grid">
+        {employees.map((e) => (
+          <article class="staff-card" id={`staff-${e.slug}`}>
+            <div class="staff-card__media">
+              <img src={e.photo} alt={`${e.name} — ${e.position}`} loading="lazy" decoding="async" />
+              <div class="staff-card__shade"></div>
+              {e.yearsExp != null && <span class="staff-card__exp">опыт {e.yearsExp} лет</span>}
+            </div>
+
+            <div class="staff-card__body">
+              <header class="staff-card__head">
+                <h2 class="staff-card__name">{e.name}</h2>
+                <p class="staff-card__pos">{e.position}</p>
+                <ul class="staff-card__tags">
+                  {e.specialties.map(t => <li>{t}</li>)}
+                </ul>
+              </header>
+
+              <p class="staff-card__desc">{e.description}</p>
+
+              <section class="staff-card__reviews" aria-label="Отзывы клиентов">
+                <h3 class="staff-card__reviews-h">
+                  Отзывы клиентов <span>({e.reviews.length})</span>
+                </h3>
+                <ul class="staff-card__reviews-list">
+                  {e.reviews.map((r) => (
+                    <li class="staff-rev">
+                      <div class="staff-rev__top">
+                        <div class="staff-rev__stars" aria-label={`Оценка ${r.rating} из 5`}>
+                          {Array.from({ length: 5 }).map((_, s) => (
+                            <span class={s < r.rating ? 'is-on' : ''}>★</span>
+                          ))}
+                        </div>
+                        <span class="staff-rev__date">{new Date(r.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </div>
+                      <blockquote class="staff-rev__text">«{r.text}»</blockquote>
+                      <figcaption class="staff-rev__author">— {r.author}{r.source ? `, ${r.source}` : ''}</figcaption>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              {e.isBookable ? (
+                <a
+                  href={`/#booking`}
+                  class="btn btn--chrome staff-card__cta"
+                  data-book-master={e.id}
+                  data-book-master-name={e.name}
+                >
+                  Записаться к {e.name.split(' ')[0]}
+                </a>
+              ) : (
+                <p class="staff-card__non-book">Администратор смены — встретит и оформит вас на месте.</p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <Footer slot="footer" />
+</Base>
+
+<style>
+  .staff {
+    padding-block: var(--space-8);
+    position: relative;
+    z-index: 2;
+  }
+  .staff__head { margin-bottom: var(--space-7); max-width: 64ch; }
+
+  .staff__grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 768px) {
+    .staff__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1280px) {
+    .staff__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  .staff-card {
+    display: flex;
+    flex-direction: column;
+    /* Glass card — matches the home Employees rail. */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: transform var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                background var(--dur-base) var(--ease-out),
+                box-shadow var(--dur-base) var(--ease-out);
+  }
+  .staff-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--hairline-strong);
+    background: rgba(22, 25, 29, 0.72);
+    box-shadow: var(--shadow-card);
+  }
+
+  .staff-card__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--graphite);
+  }
+  .staff-card__media img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .staff-card:hover .staff-card__media img { transform: scale(1.04); }
+  .staff-card__shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(8,9,11,0.55) 100%);
+    pointer-events: none;
+  }
+  .staff-card__exp {
+    position: absolute;
+    top: 14px; right: 14px;
+    padding: 5px 10px;
+    border-radius: var(--r-sm);
+    background: rgba(8,9,11,0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-strong);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--chrome-1);
+  }
+
+  .staff-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    flex: 1;
+  }
+  .staff-card__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(20px, 2vw, 24px);
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .staff-card__pos {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+    margin-top: -8px;
+  }
+  .staff-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin-top: 4px;
+  }
+  .staff-card__tags li {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 9px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-sm);
+    background: rgba(8,9,11,0.4);
+  }
+  .staff-card__desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .staff-card__reviews {
+    margin-top: 4px;
+    padding: var(--space-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    background: rgba(8,9,11,0.32);
+  }
+  .staff-card__reviews-h {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+    margin-bottom: 10px;
+  }
+  .staff-card__reviews-h span { color: var(--text-dim); }
+  .staff-card__reviews-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .staff-rev {
+    padding-bottom: var(--space-3);
+    border-bottom: 1px dashed var(--hairline);
+  }
+  .staff-rev:last-child { border-bottom: none; padding-bottom: 0; }
+  .staff-rev__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .staff-rev__stars {
+    display: flex; gap: 2px;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1;
+  }
+  .staff-rev__stars .is-on { color: #ffd76a; }
+  .staff-rev__date {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+  .staff-rev__text {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .staff-rev__author {
+    color: var(--chrome-2);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .staff-card__cta {
+    margin-top: auto;
+    padding: 12px 18px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    align-self: flex-start;
+  }
+  .staff-card__non-book {
+    margin-top: auto;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-style: italic;
+  }
+
+  @media (max-width: 599px) {
+    .staff-card__cta { width: 100%; align-self: stretch; text-align: center; }
+  }
+</style>
+
+<script>
+  /* Same booking-prefill pipeline as in Employees.astro — clicking a CTA
+     on /staff scrolls to /#booking and prefills the master in the form. */
+  document.querySelectorAll<HTMLAnchorElement>('[data-book-master]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        sessionStorage.setItem('autolife:booking-prefill', JSON.stringify({
+          master: btn.dataset.bookMaster,
+          masterName: btn.dataset.bookMasterName,
+        }));
+        // The home page picks this up on mount + 'autolife:booking-prefill'
+      } catch { /* noop */ }
+    });
+  });
+</script>

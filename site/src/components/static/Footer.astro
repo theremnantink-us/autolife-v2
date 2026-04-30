@@ -1,0 +1,219 @@
+---
+const services = [
+  { href: '/#washing',      label: 'Мойка' },
+  { href: '/#detailing',    label: 'Детейлинг' },
+  { href: '/#tire-service', label: 'Шиномонтаж' },
+];
+const nav = [
+  { href: '/',             label: 'Главная' },
+  { href: '/pricelist',    label: 'Прайс-лист' },
+  { href: '/#promotions',  label: 'Акции' },
+  { href: '/staff',        label: 'Команда' },
+  { href: '/#gallery',     label: 'Галерея' },
+  { href: '/#reviews',     label: 'Отзывы' },
+  { href: '/#booking',     label: 'Запись' },
+  { href: '/#contacts',    label: 'Контакты' },
+];
+const year = new Date().getFullYear();
+---
+<footer class="ftr">
+  <div class="container ftr__top">
+    <div class="ftr__brand-col">
+      <a href="/" class="ftr__brand" aria-label="АвтоЛайф — на главную">
+        <img src="/IMG/wordmark.png" alt="АвтоЛайф" class="ftr__wordmark" width="320" height="29" />
+      </a>
+      <p class="ftr__about">
+        Профессиональный автокомплекс на Рублёво-Успенском шоссе.
+        Мойка, детейлинг и шиномонтаж высшего качества.
+      </p>
+      <div class="ftr__contact">
+        <a href="tel:+79035551055" class="ftr__pill ftr__pill--phone">+7 (903) 555-10-55</a>
+        <a href="mailto:avtolive@gmail.com" class="ftr__pill">avtolive@gmail.com</a>
+      </div>
+    </div>
+
+    <nav class="ftr__col" aria-label="Услуги">
+      <h4 class="ftr__h">Услуги</h4>
+      <ul>
+        {services.map(s => <li><a href={s.href} class="ftr__link">{s.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <nav class="ftr__col" aria-label="Навигация">
+      <h4 class="ftr__h">Навигация</h4>
+      <ul>
+        {nav.map(n => <li><a href={n.href} class="ftr__link">{n.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="ftr__col">
+      <h4 class="ftr__h">Где мы</h4>
+      <p class="ftr__addr">Рублёво-Успенское ш.<br />п. Горки-10, стр. 31А</p>
+      <p class="ftr__hours">Пн–Пт 9:00 — 21:00<br />Сб–Вс 10:00 — 20:00</p>
+      <a href="https://yandex.ru/maps/org/avtolayf/15713727058/" target="_blank" rel="noopener noreferrer" class="ftr__map-link">
+        Маршрут в Яндекс →
+      </a>
+    </div>
+  </div>
+
+  <div class="container ftr__bottom">
+    <span>© {year} Автокомплекс «АвтоЛайф». Все права защищены.</span>
+    <a href="/privacy-policy.html" class="ftr__legal">Политика конфиденциальности</a>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    position: relative;
+    z-index: 2;
+    margin-top: var(--space-9);
+    padding-block: var(--space-8) var(--space-5);
+    /* Solid surface so the footer reads cleanly after the transparent
+       sections above. Subtle chrome hairline for separation. */
+    background:
+      linear-gradient(180deg, rgba(8,9,11,0.92) 0%, rgba(11,13,15,1) 100%);
+    border-top: 1px solid var(--hairline-strong);
+    box-shadow: 0 -1px 0 rgba(232,234,237,0.04);
+  }
+
+  .ftr__top {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1.3fr;
+    gap: var(--space-6);
+    padding-bottom: var(--space-7);
+    border-bottom: 1px solid var(--hairline);
+  }
+  @media (max-width: 1023px) {
+    .ftr__top { grid-template-columns: 1fr 1fr; }
+    .ftr__brand-col { grid-column: 1 / -1; }
+  }
+  @media (max-width: 599px) {
+    .ftr__top { grid-template-columns: 1fr; gap: var(--space-5); }
+  }
+
+  .ftr__brand-col { display: flex; flex-direction: column; gap: var(--space-3); }
+  .ftr__wordmark {
+    width: clamp(200px, 24vw, 280px);
+    height: auto;
+    filter: drop-shadow(0 0 14px rgba(232,234,237,0.18));
+  }
+  .ftr__about {
+    color: var(--text);
+    opacity: 0.78;
+    font-size: 14px;
+    line-height: 1.55;
+    max-width: 36ch;
+  }
+
+  .ftr__contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: var(--space-2);
+  }
+  .ftr__pill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline-strong);
+    background: rgba(17,19,22,0.75);
+    font-size: 13px;
+    color: var(--text);
+    transition: border-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out);
+  }
+  .ftr__pill:hover {
+    border-color: var(--chrome-1);
+    color: var(--chrome-1);
+  }
+  .ftr__pill--phone {
+    background: var(--chrome-gradient);
+    color: #0b0c0e;
+    border-color: rgba(255,255,255,0.25);
+    font-weight: 600;
+    box-shadow: var(--shadow-chrome);
+  }
+  .ftr__pill--phone:hover {
+    color: #0b0c0e;
+    border-color: rgba(255,255,255,0.4);
+  }
+
+  .ftr__col { display: flex; flex-direction: column; gap: var(--space-3); }
+  .ftr__h {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--chrome-1);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--hairline);
+    /* Chrome accent under the underline */
+    position: relative;
+  }
+  .ftr__h::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -1px;
+    width: 36px; height: 1px;
+    background: var(--chrome-gradient);
+  }
+  .ftr__col ul { display: flex; flex-direction: column; gap: 4px; }
+  .ftr__col ul li { line-height: 1; }
+  .ftr__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    color: var(--text);
+    font-size: 14px;
+    transition: color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .ftr__link::before {
+    content: '';
+    width: 0;
+    height: 1px;
+    background: var(--chrome-1);
+    transition: width var(--dur-base) var(--ease-out);
+  }
+  .ftr__link:hover {
+    color: var(--chrome-1);
+    transform: translateX(2px);
+  }
+  .ftr__link:hover::before { width: 14px; }
+  .ftr__addr,
+  .ftr__hours { color: var(--text); font-size: 14px; line-height: 1.6; }
+  .ftr__hours { color: var(--text-muted); margin-top: 4px; }
+  .ftr__map-link {
+    margin-top: var(--space-2);
+    color: var(--chrome-1);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    transition: transform var(--dur-fast) var(--ease-out);
+    align-self: flex-start;
+  }
+  .ftr__map-link:hover { transform: translateX(4px); }
+
+  .ftr__bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-4);
+    color: var(--text-dim);
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .ftr__legal {
+    color: var(--chrome-2);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .ftr__legal:hover { color: var(--chrome-1); }
+
+  @media (max-width: 599px) {
+    .ftr__bottom { flex-direction: column; align-items: flex-start; text-align: left; }
+  }
+</style>

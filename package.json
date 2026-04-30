@@ -1,0 +1,12 @@
+{
+  "name": "autolife-detail",
+  "version": "0.1.0",
+  "private": true,
+  "description": "autolife-detail.ru — premium detailing, Rublevo-Uspenskoye",
+  "scripts": {
+    "php": "php -S localhost:8080 -t public_html"
+  },
+  "dependencies": {
+    "motion": "^12.38.0"
+  }
+}

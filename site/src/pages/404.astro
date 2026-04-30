@@ -1,0 +1,22 @@
+---
+// site/src/pages/404.astro
+import Base from '../layouts/Base.astro';
+---
+<Base title="404 · Страница не найдена" description="Запрашиваемая страница не существует.">
+  <section class="notfound">
+    <div class="container">
+      <h1 class="wordmark" style="font-size: clamp(64px, 12vw, 160px);">404</h1>
+      <p>Страница не найдена. Вернитесь на <a href="/" class="notfound__link">главную</a> или к <a href="/pricing" class="notfound__link">прайсу</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .notfound {
+    min-height: 70vh;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .notfound p { font-size: 16px; color: var(--text-muted); margin-top: var(--space-lg); }
+  .notfound__link { color: var(--silver); text-decoration: underline; }
+</style>

@@ -1,0 +1,234 @@
+---
+/**
+ * Homepage pricing teaser → links to /pricelist with a category anchor.
+ * The 5 categories mirror public_html/pricelist.html exactly. Item counts
+ * and "от X ₽" anchors are taken from the table headlining services so
+ * users see realistic entry points (not misleadingly the floor of any
+ * sub-row like "упаковка шин 60 ₽").
+ */
+
+const cats = [
+  {
+    id: 'wash',
+    title: 'Мойка автомобилей',
+    count: 15,
+    from: 'от 700 ₽',
+    sub: 'Кузов, комплекс, NANO, экспресс',
+    icon: 'drop',
+  },
+  {
+    id: 'wash-extra',
+    title: 'Доп. услуги мойки',
+    count: 9,
+    from: 'от 200 ₽',
+    sub: 'Мойка двигателя, мото и квадро, воск',
+    icon: 'plus',
+  },
+  {
+    id: 'protection',
+    title: 'Защитные покрытия',
+    count: 16,
+    from: 'от 1 500 ₽',
+    sub: 'Кварц, твёрдый воск, антидождь, химчистка дисков',
+    icon: 'shield',
+  },
+  {
+    id: 'detailing',
+    title: 'Детейлинг услуги',
+    count: 15,
+    from: 'от 2 000 ₽',
+    sub: 'Полировка, химчистка, восстановление хрома',
+    icon: 'sparkle',
+  },
+  {
+    id: 'tire',
+    title: 'Шиномонтаж',
+    count: 39,
+    from: 'от 150 ₽',
+    sub: 'Легковые, кроссоверы, внедорожники R-13…R-23+',
+    icon: 'wheel',
+  },
+];
+
+const icons: Record<string, string> = {
+  drop:    '<path d="M12 3s6 6.5 6 11a6 6 0 1 1-12 0c0-4.5 6-11 6-11z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',
+  plus:    '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  shield:  '<path d="M12 3l8 3v6c0 5-4 8.5-8 9-4-.5-8-4-8-9V6l8-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M9 12l2.2 2.2L15 10.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/><path d="M19 17l.9 2L22 20l-2.1.9L19 23l-.9-2.1L16 20l2.1-.9.9-2z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>',
+  wheel:   '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6M5.6 5.6l4.2 4.2M14.2 14.2l4.2 4.2M5.6 18.4l4.2-4.2M14.2 9.8l4.2-4.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+};
+---
+<section class="pt" id="pricing" aria-labelledby="pricing-heading">
+  <div class="container">
+    <header class="section__head pt__head">
+      <p class="eyebrow">Цены</p>
+      <h2 id="pricing-heading" class="section__title">Полный прайс — 110 позиций</h2>
+      <p class="section__lead">
+        Цены привязаны к классу автомобиля и радиусу диска. На главной — сводка по направлениям; полная таблица — на отдельной странице.
+      </p>
+    </header>
+
+    <div class="pt__grid">
+      {cats.map(c => (
+        <a class="pt-card" href={`/pricelist#${c.id}`}>
+          <div class="pt-card__top">
+            <div class="pt-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" set:html={icons[c.icon]} />
+            </div>
+            <span class="pt-card__count">{c.count} позиций</span>
+          </div>
+          <h3 class="pt-card__title">{c.title}</h3>
+          <p class="pt-card__sub">{c.sub}</p>
+          <p class="pt-card__price">{c.from}</p>
+          <span class="pt-card__arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="pt__cta">
+      <a href="/pricelist" class="btn btn--chrome">Полный прайс-лист</a>
+      <p class="pt__hint">110 позиций · 5 направлений · обновлено</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pt {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    background: transparent;
+  }
+  .pt__head { max-width: 60ch; margin-bottom: var(--space-7); }
+
+  .pt__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    gap: var(--space-5);
+  }
+
+  .pt-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    /* Glass card — same recipe as Services / Promotions / Booking. */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    transition: transform var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                background var(--dur-base) var(--ease-out);
+    isolation: isolate;
+  }
+  .pt-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 80% at 100% 0%, rgba(232,234,237,0.08) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+    z-index: -1;
+  }
+  .pt-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--chrome-3);
+  }
+  .pt-card:hover::before { opacity: 1; }
+
+  .pt-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+  .pt-card__icon {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    color: var(--chrome-2);
+    background: var(--graphite);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+  }
+  .pt-card:hover .pt-card__icon {
+    color: var(--chrome-1);
+    border-color: var(--chrome-3);
+  }
+  .pt-card__count {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .pt-card__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .pt-card__sub {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    flex: 1;
+  }
+  .pt-card__price {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    background: var(--chrome-gradient);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    letter-spacing: 0.01em;
+    margin-top: var(--space-2);
+  }
+  .pt-card__arrow {
+    position: absolute;
+    bottom: 18px; right: 18px;
+    color: var(--chrome-2);
+    font-size: 18px;
+    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+  .pt-card:hover .pt-card__arrow {
+    transform: translateX(3px);
+    color: var(--chrome-1);
+  }
+
+  .pt__cta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-7);
+    flex-wrap: wrap;
+  }
+  .pt__hint {
+    color: var(--chrome-1);
+    font-size: 13px;
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    /* Glass pill so the hint stays readable when the 3D car drives behind. */
+    padding: 8px 14px;
+    background: rgba(8, 9, 11, 0.45);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+  }
+
+  @media (max-width: 599px) {
+    .pt__grid { grid-template-columns: 1fr; }
+    .pt-card { padding: var(--space-4); }
+    .pt__cta .btn { width: 100%; text-align: center; justify-content: center; }
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+/**
+ * /admin — admin panel shell.
+ *
+ * Авторизация — Supabase Auth (email + password).
+ * AdminApp проверяет сессию на клиенте и показывает форму входа если не авторизован.
+ *
+ * Заголовки безопасности: X-Frame-Options, CSP, HSTS и др. — выставлены ниже.
+ * Защита от DDoS на уровне приложения ограничена; рекомендуется Cloudflare.
+ */
+import Base from '../layouts/Base.astro';
+import Header from '../components/static/Header.astro';
+import AdminApp from '../components/islands/admin/AdminApp';
+
+// Security headers — выставляем на каждый ответ /admin
+Astro.response.headers.set('X-Frame-Options', 'DENY');
+Astro.response.headers.set('X-Content-Type-Options', 'nosniff');
+Astro.response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+Astro.response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+Astro.response.headers.set(
+  'Content-Security-Policy',
+  [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",   // Astro/React hydration needs this
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-ancestors 'none'",
+  ].join('; '),
+);
+
+const title = 'Админ-панель — АвтоЛайф';
+const description = 'Внутренний раздел: записи, статистика, зарплаты, авансы.';
+---
+<Base title={title} description={description} noIndex>
+  <Header slot="header" />
+
+  <main class="admin-main" id="main">
+    <div class="container admin-shell">
+      <AdminApp client:only="react" />
+    </div>
+  </main>
+</Base>
+
+<style>
+  .admin-main {
+    /* Solid, non-3D background — admin must read like a tool, not a hero. */
+    min-height: 100vh;
+    padding-block: var(--space-6);
+    background:
+      radial-gradient(ellipse at 60% 0%, rgba(232,234,237,0.06) 0%, transparent 60%),
+      linear-gradient(180deg, #0a0c10 0%, #08090b 100%);
+  }
+  .admin-shell {
+    padding-top: var(--space-3);
+  }
+</style>

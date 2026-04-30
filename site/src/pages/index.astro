@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/static/Header.astro';
+import Footer from '../components/static/Footer.astro';
+import Hero from '../components/static/Hero.astro';
+import Services from '../components/static/Services.astro';
+import Promotions from '../components/static/Promotions.astro';
+import Process from '../components/static/Process.astro';
+import Employees from '../components/static/Employees.astro';
+import Gallery from '../components/static/Gallery.astro';
+import PricingTeaser from '../components/static/PricingTeaser.astro';
+import HeroBackdrop from '../components/islands/HeroBackdrop';
+import Reviews from '../components/islands/Reviews';
+import BookingForm from '../components/islands/BookingForm';
+import Contacts from '../components/static/Contacts.astro';
+
+const YANDEX_API_KEY  = import.meta.env.PUBLIC_YANDEX_API_KEY  ?? '';
+const YANDEX_PLACE_ID = import.meta.env.PUBLIC_YANDEX_PLACE_ID ?? '';
+---
+<Base>
+  <Header slot="header" />
+
+  <!--
+    Fixed cinematic 3D backdrop (mounted once, persists through scroll).
+    All sections below are transparent, so the AMG GT camera path stays
+    visible behind every gap between cards. Only the cards themselves are
+    opaque — text on top of bare canvas would be unreadable.
+  -->
+  <HeroBackdrop client:only="react" />
+
+  <Hero />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <Services />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <Promotions />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <Process />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  {/* <Employees /> — временно скрыта секция сотрудников */}
+  {/* <div class="reveal-gap" aria-hidden="true"></div> */}
+
+  <Gallery />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <Reviews client:visible apiKey={YANDEX_API_KEY} placeId={YANDEX_PLACE_ID} />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <PricingTeaser />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <BookingForm client:visible />
+  <div class="reveal-gap" aria-hidden="true"></div>
+
+  <Contacts />
+
+  <Footer slot="footer" />
+</Base>
+
+<style>
+  /* Transparent strips between sections — the 3D car keeps moving here.
+     Larger gaps so the cinematic backdrop has room to breathe. */
+  .reveal-gap {
+    position: relative;
+    z-index: 1;
+    height: 60vh;
+  }
+  @media (max-width: 767px) {
+    /* On mobile we trade some 3D breathing room for shorter scroll length. */
+    .reveal-gap { height: 38vh; }
+  }
+</style>

@@ -1,0 +1,29 @@
+/* Modern, minimal reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;             /* belt: kill horizontal scroll on iOS */
+  max-width: 100vw;
+}
+body {
+  min-height: 100dvh;
+  line-height: 1.5;
+  overflow-x: clip;             /* braces: same on body for older browsers */
+  width: 100%;
+  max-width: 100vw;
+}
+img, picture, video, canvas, svg { display: block; max-width: 100%; height: auto; }
+input, button, textarea, select { font: inherit; color: inherit; background: none; border: none; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, h5, h6 { font-weight: inherit; line-height: 1.15; }
+ul, ol { list-style: none; }
+:focus-visible {
+  outline: 2px solid var(--chrome-1);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+::selection { background: var(--chrome-1); color: var(--bg); }

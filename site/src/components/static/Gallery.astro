@@ -1,0 +1,449 @@
+---
+import { galleryItems, galleryFilters } from '../../data/gallery';
+
+/* Feature image + asymmetric grid layout (efferd-inspired). Same 6 photos,
+   captions, categories, alts — only the visual layout changed. */
+---
+<section class="gal" id="gallery" aria-labelledby="gallery-heading">
+  <div class="container">
+    <header class="section__head gal__head">
+      <p class="eyebrow">Галерея</p>
+      <h2 id="gallery-heading" class="section__title">Работы из бокса</h2>
+      <p class="section__lead">
+        Реальные автомобили и реальные результаты. Кликните по фото — откроется крупно с навигацией.
+      </p>
+    </header>
+
+    <div class="gal-filters" role="tablist" aria-label="Фильтр галереи">
+      {galleryFilters.map((f, i) => (
+        <button
+          type="button"
+          class={`gal-filter${i === 0 ? ' is-active' : ''}`}
+          data-filter={f.id}
+          role="tab"
+          aria-selected={i === 0 ? 'true' : 'false'}
+        >{f.label}</button>
+      ))}
+    </div>
+
+    <div class="gal-bento" id="gal-bento">
+      {galleryItems.map((item, i) => (
+        <figure
+          class={`gb gb--${i + 1}${item.placeholder ? ' gb--placeholder' : ''}`}
+          data-category={item.category}
+          data-index={i}
+          data-placeholder={item.placeholder ? 'true' : null}
+        >
+          <button type="button" class="gb__btn" aria-label={`Открыть: ${item.title} — ${item.caption}`}>
+            {item.placeholder ? (
+              <div class="gb__ph" aria-hidden="true">
+                <span class="gb__ph-mark">фото скоро</span>
+              </div>
+            ) : (
+              <img
+                src={item.src}
+                alt={item.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <span class="gb__chip">{item.caption}</span>
+            <figcaption class="gb__cap">
+              <span class="gb__title">{item.title}</span>
+              <span class="gb__open" aria-hidden="true">↗</span>
+            </figcaption>
+          </button>
+        </figure>
+      ))}
+    </div>
+  </div>
+
+  <!-- Lightbox (unchanged) -->
+  <div class="lb" id="gal-lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Просмотр работы" hidden>
+    <button class="lb__close" type="button" aria-label="Закрыть">×</button>
+    <button class="lb__nav lb__prev" type="button" aria-label="Предыдущее">‹</button>
+    <button class="lb__nav lb__next" type="button" aria-label="Следующее">›</button>
+    <figure class="lb__frame">
+      <img id="lb-img" alt="" />
+      <figcaption class="lb__cap">
+        <h3 id="lb-title"></h3>
+        <p id="lb-sub"></p>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .gal {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-9);
+    background: transparent;
+  }
+  .gal__head { max-width: 60ch; margin-bottom: var(--space-6); }
+
+  /* Filter pills */
+  .gal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: var(--space-6);
+  }
+  .gal-filter {
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg-elev);
+    border: 1px solid var(--hairline);
+    transition: color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
+  }
+  .gal-filter:hover {
+    color: var(--text);
+    border-color: var(--hairline-strong);
+  }
+  .gal-filter.is-active {
+    background: var(--chrome-gradient);
+    color: #0b0c0e;
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: var(--shadow-chrome);
+  }
+
+  /*
+    Bento layout — 12-column grid.
+    Item 1 (Mercedes) = feature, spans 7 cols × 2 rows.
+    Items 2–6 fill the remaining 5 cols + bottom row.
+  */
+  .gal-bento {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: 220px;
+    gap: var(--space-4);
+  }
+  .gb--1 { grid-column: span 7; grid-row:    span 2; }
+  .gb--2 { grid-column: span 5; grid-row:    span 1; }
+  .gb--3 { grid-column: span 5; grid-row:    span 1; }
+  .gb--4 { grid-column: span 4; grid-row:    span 1; }
+  .gb--5 { grid-column: span 4; grid-row:    span 1; }
+  .gb--6 { grid-column: span 4; grid-row:    span 1; }
+  /* Robot tier — 3 items, 6 + 3 + 3 layout */
+  .gb--7 { grid-column: span 6; grid-row:    span 1; }
+  .gb--8 { grid-column: span 3; grid-row:    span 1; }
+  .gb--9 { grid-column: span 3; grid-row:    span 1; }
+
+  @media (max-width: 1023px) {
+    .gal-bento { grid-template-columns: repeat(6, 1fr); grid-auto-rows: 200px; }
+    .gb--1 { grid-column: span 6; grid-row: span 2; }
+    .gb--2, .gb--3 { grid-column: span 3; }
+    .gb--4, .gb--5, .gb--6 { grid-column: span 2; }
+    .gb--7 { grid-column: span 6; }
+    .gb--8, .gb--9 { grid-column: span 3; }
+  }
+  @media (max-width: 599px) {
+    .gal-bento { grid-template-columns: 1fr; grid-auto-rows: 240px; }
+    .gb--1, .gb--2, .gb--3, .gb--4, .gb--5, .gb--6,
+    .gb--7, .gb--8, .gb--9 { grid-column: 1; grid-row: span 1; }
+    .gb--1 { grid-row: span 2; }
+  }
+
+  .gb {
+    position: relative;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    /* Glass surface — same recipe as Services / Booking. The bento images
+       cover the tile so the glass mostly shows through hover-lifted edges,
+       but it keeps the placeholder/empty tiles consistent with the rest. */
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--hairline);
+    transition: opacity 0.35s var(--ease-out),
+                transform 0.35s var(--ease-out),
+                border-color 0.35s var(--ease-out),
+                background 0.35s var(--ease-out);
+    isolation: isolate;
+  }
+  .gb:hover {
+    border-color: var(--hairline-strong);
+    background: rgba(22, 25, 29, 0.72);
+  }
+
+  .gb.is-hidden {
+    opacity: 0;
+    transform: scale(0.96);
+    pointer-events: none;
+    grid-row: span 0 !important;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+  .gb__btn {
+    display: block;
+    width: 100%; height: 100%;
+    position: relative;
+    background: transparent;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+  .gb__btn img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 1s var(--ease-out), filter 0.4s var(--ease-out);
+    filter: saturate(1.05);
+  }
+  .gb:hover .gb__btn img { transform: scale(1.06); filter: saturate(1.15) brightness(1.05); }
+
+  /* Placeholder tile — render until real photos land */
+  .gb__ph {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(232,234,237,0.10) 0%, transparent 60%),
+      linear-gradient(135deg, #14171b 0%, #1f242a 50%, #0e1013 100%);
+  }
+  .gb__ph::before,
+  .gb__ph::after {
+    content: '';
+    position: absolute;
+    border: 1px dashed rgba(232,234,237,0.18);
+    border-radius: var(--r-md);
+    inset: 14px;
+    pointer-events: none;
+  }
+  .gb__ph::after { inset: 22px; opacity: 0.45; }
+  .gb__ph-mark {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--chrome-2);
+    padding: 8px 14px;
+    background: rgba(8,9,11,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-sm);
+  }
+
+  /* Tiny caption chip floating top-left */
+  .gb__chip {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 5px 10px;
+    border-radius: var(--r-sm);
+    background: rgba(8,9,11,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-strong);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--chrome-1);
+  }
+
+  /* Caption strip slides in on hover */
+  .gb__cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    color: var(--text);
+    background: linear-gradient(180deg, transparent 0%, rgba(8,9,11,0.92) 100%);
+    transform: translateY(8px);
+    opacity: 0;
+    transition: opacity 0.35s var(--ease-out), transform 0.35s var(--ease-out);
+  }
+  .gb:hover .gb__cap,
+  .gb:focus-within .gb__cap {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .gb__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .gb__open {
+    font-size: 18px;
+    color: var(--chrome-1);
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .gb:hover .gb__open { transform: translateX(2px) translateY(-2px); }
+
+  /* Lightbox — unchanged */
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    place-items: center;
+    background: rgba(8,9,11,0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: var(--space-5);
+  }
+  .lb[hidden] { display: none; }
+  .lb__frame {
+    max-width: min(96vw, 1400px);
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  #lb-img {
+    max-width: 100%;
+    max-height: 78vh;
+    object-fit: contain;
+    border-radius: var(--r-md);
+    box-shadow: 0 20px 80px rgba(0,0,0,0.7);
+    background: var(--graphite);
+  }
+  .lb__cap { text-align: center; }
+  #lb-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text);
+  }
+  #lb-sub { color: var(--chrome-2); font-size: 14px; margin-top: 4px; }
+  .lb__close, .lb__nav {
+    position: absolute;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--hairline-strong);
+    color: var(--chrome-1);
+    border-radius: 50%;
+    width: 44px; height: 44px;
+    font-size: 22px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .lb__close:hover, .lb__nav:hover { background: rgba(232,234,237,0.18); transform: scale(1.05); }
+  .lb__close { top: 20px; right: 20px; }
+  .lb__prev  { top: 50%; left: 20px;  transform: translateY(-50%); }
+  .lb__next  { top: 50%; right: 20px; transform: translateY(-50%); }
+  .lb__prev:hover { transform: translateY(-50%) scale(1.05); }
+  .lb__next:hover { transform: translateY(-50%) scale(1.05); }
+  @media (max-width: 599px) {
+    .lb__close, .lb__nav { width: 38px; height: 38px; font-size: 18px; }
+    .lb__prev { left: 10px; }
+    .lb__next { right: 10px; }
+  }
+</style>
+
+<script>
+  import { galleryItems } from '../../data/gallery';
+
+  /* ───────── Filter ───────── */
+  const filterBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.gal-filter'));
+  const items      = Array.from(document.querySelectorAll<HTMLElement>('.gb'));
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.filter ?? 'all';
+      filterBtns.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      items.forEach(el => {
+        const cat = el.dataset.category;
+        const show = id === 'all' || cat === id;
+        el.classList.toggle('is-hidden', !show);
+      });
+    });
+  });
+
+  /* ───────── Lightbox ───────── */
+  const lb = document.getElementById('gal-lightbox');
+  const lbImg   = document.getElementById('lb-img')   as HTMLImageElement | null;
+  const lbTitle = document.getElementById('lb-title') as HTMLElement | null;
+  const lbSub   = document.getElementById('lb-sub')   as HTMLElement | null;
+  const closeBtn = lb?.querySelector('.lb__close') as HTMLButtonElement | null;
+  const prevBtn  = lb?.querySelector('.lb__prev')  as HTMLButtonElement | null;
+  const nextBtn  = lb?.querySelector('.lb__next')  as HTMLButtonElement | null;
+
+  let current = 0;
+  let lastFocus: HTMLElement | null = null;
+
+  function visibleItems(): number[] {
+    const indices: number[] = [];
+    items.forEach((el, i) => { if (!el.classList.contains('is-hidden')) indices.push(i); });
+    return indices;
+  }
+  function open(i: number) {
+    if (!lb || !lbImg) return;
+    lastFocus = document.activeElement as HTMLElement;
+    current = i;
+    paint();
+    lb.hidden = false;
+    lb.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    closeBtn?.focus();
+  }
+  function close() {
+    if (!lb) return;
+    lb.hidden = true;
+    lb.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    lastFocus?.focus();
+  }
+  function paint() {
+    if (!lbImg || !lbTitle || !lbSub) return;
+    const it = galleryItems[current];
+    if (!it) return;
+    lbImg.src = it.src;
+    lbImg.alt = it.alt;
+    lbTitle.textContent = it.title;
+    lbSub.textContent   = it.caption;
+  }
+  function step(delta: number) {
+    const vis = visibleItems();
+    if (!vis.length) return;
+    const pos = vis.indexOf(current);
+    const next = vis[(pos + delta + vis.length) % vis.length];
+    current = next;
+    paint();
+  }
+
+  items.forEach((el, i) => {
+    const btn = el.querySelector('.gb__btn') as HTMLButtonElement | null;
+    btn?.addEventListener('click', () => {
+      // Placeholders are inert — user told us photos arrive later
+      if (el.dataset.placeholder === 'true') return;
+      open(i);
+    });
+  });
+  closeBtn?.addEventListener('click', close);
+  prevBtn?.addEventListener('click', () => step(-1));
+  nextBtn?.addEventListener('click', () => step(+1));
+  lb?.addEventListener('click', (e) => { if (e.target === lb) close(); });
+
+  document.addEventListener('keydown', (e) => {
+    if (lb?.hidden) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft')  step(-1);
+    else if (e.key === 'ArrowRight') step(+1);
+  });
+</script>

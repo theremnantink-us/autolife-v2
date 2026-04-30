@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="А">
+  <defs>
+    <linearGradient id="bg-alexander" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c1c1c"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <linearGradient id="fg-alexander" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f5f5f5"/>
+      <stop offset="50%" stop-color="#8a8a8a"/>
+      <stop offset="100%" stop-color="#4a4a4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg-alexander)"/>
+  <line x1="0" y1="320" x2="400" y2="320" stroke="#222" stroke-width="1"/>
+  <text x="200" y="225" text-anchor="middle"
+        font-family="Michroma, sans-serif" font-size="180"
+        fill="url(#fg-alexander)" letter-spacing="0.04em">А</text>
+  <text x="200" y="360" text-anchor="middle"
+        font-family="'Exo 2', sans-serif" font-size="14"
+        fill="#5a5a5a" letter-spacing="0.4em">AUTOLIFE</text>
+</svg>
