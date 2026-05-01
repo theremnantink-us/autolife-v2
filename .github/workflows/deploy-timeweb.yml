@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -35,68 +36,54 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      # Wipe dist/ folder first — clears any stale files with bad perms
-      - name: Wipe remote dist/ folder
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USER: ${{ secrets.FTP_USERNAME }}
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          cat > /tmp/wipe.lftp <<EOF
-          set ftp:ssl-allow yes
-          set ftp:ssl-force no
-          set ssl:verify-certificate no
-          set ftp:passive-mode yes
-          set ftp:use-mlsd no
-          set net:timeout 30
-          set net:max-retries 2
-          open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
-          rm -rf autolife.ru/public_html/dist
-          bye
-          EOF
-          timeout 180 lftp -f /tmp/wipe.lftp || echo "Wipe failed/timed out — continuing anyway"
-
-      # Deploy frontend (dist/) → autolife.ru/public_html/dist/ on TimeWeb
+      # Deploy frontend (dist/) → autolife.ru/public_html/dist/
       - name: Deploy frontend via lftp
+        timeout-minutes: 15
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
           FTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          cat > /tmp/frontend.lftp <<EOF
+          cat > /tmp/frontend.lftp <<'LFTP_EOF'
           set ftp:ssl-allow yes
           set ftp:ssl-force no
           set ssl:verify-certificate no
           set ftp:passive-mode yes
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
-          set xfer:clobber yes
-          set net:timeout 60
+          set ftp:stall-timeout 300
+          set net:timeout 300
           set net:max-retries 3
-          open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
-          mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/
-          bye
-          EOF
+          set net:reconnect-interval-base 5
+          set xfer:clobber yes
+          LFTP_EOF
+          echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
+          echo "bye" >> /tmp/frontend.lftp
           lftp -f /tmp/frontend.lftp
 
-      # Deploy PHP backend (public_html/) → autolife.ru/public_html/ on TimeWeb
+      # Deploy PHP backend → autolife.ru/public_html/
       - name: Deploy PHP backend via lftp
+        timeout-minutes: 5
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
           FTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          cat > /tmp/backend.lftp <<EOF
+          cat > /tmp/backend.lftp <<'LFTP_EOF'
           set ftp:ssl-allow yes
           set ftp:ssl-force no
           set ssl:verify-certificate no
           set ftp:passive-mode yes
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
-          set net:timeout 60
+          set ftp:stall-timeout 120
+          set net:timeout 120
           set net:max-retries 3
-          open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
-          mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/
-          bye
-          EOF
+          set net:reconnect-interval-base 5
+          set xfer:clobber yes
+          LFTP_EOF
+          echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
+          echo "bye" >> /tmp/backend.lftp
           lftp -f /tmp/backend.lftp
