@@ -2,32 +2,26 @@
 # autolife-detail.ru — Apache config
 # ============================================================
 
+RewriteEngine On
+
 # --- Maintenance mode ----------------------------------------
-# Чтобы включить: раскомментируй 3 строки ниже (убери #!)
-# Чтобы выключить: закомментируй их снова
-
-#!RewriteCond %{REQUEST_URI} !^/maintenance\.html$
-#!RewriteCond %{REMOTE_ADDR} !^YOUR_IP_HERE$
-#!RewriteRule ^(.*)$ /maintenance.html [R=302,L]
-
+# Чтобы включить: убери # с трёх строк ниже
+# Чтобы выключить: поставь # обратно
+#RewriteCond %{REQUEST_URI} !^/maintenance\.html$
+#RewriteCond %{REMOTE_ADDR} !^YOUR_IP_HERE$
+#RewriteRule ^(.*)$ /maintenance.html [R=302,L]
 
 # --- Force HTTPS ---------------------------------------------
-RewriteEngine On
 RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# --- Fallback: serve index.php when the request path is / ---
-# Timeweb usually has DirectoryIndex set, but make it explicit.
-DirectoryIndex index.php index.html
-
-# --- Deny any dotfile (.env, .git, .htaccess itself is protected by Apache default) ---
+# --- Deny any dotfile (.env, .git, etc.) ---
 <FilesMatch "^\.">
   Require all denied
 </FilesMatch>
 
-# --- Deny known dev / admin scripts even if they linger on the server ---
-# Paranoia after Phase 0: these files must be deleted, but if one sneaks back
-# in a future deploy it still won't be accessible.
+# --- Deny dev / admin scripts ---
 <FilesMatch "^(test_|check_|create_|db_status|generate-vapid).*\.php$">
   Require all denied
 </FilesMatch>
@@ -35,17 +29,7 @@ DirectoryIndex index.php index.html
   Require all denied
 </Files>
 
-# --- Security headers (apply to every response) ---
-# Tightened in redesign Phase 2:
-#   * 2-year HSTS + preload-ready
-#   * X-Frame-Options DENY (no embedding anywhere)
-#   * Permissions-Policy disables sensors we never use
-#   * Cross-Origin-Opener-Policy: same-origin (process isolation)
-#   * Cross-Origin-Resource-Policy: same-site
-#   * CSP dropped 'unsafe-eval' (Spline removed); keeps 'wasm-unsafe-eval'
-#     for the drei DRACOLoader on /models/amg-gt.glb. Whitelists:
-#     www.gstatic.com (Draco wasm CDN), api-maps.yandex.ru (Maps),
-#     search-maps.yandex.ru (Reviews API), yandex.ru (reviews iframe).
+# --- Security headers ---
 <IfModule mod_headers.c>
   Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
   Header always set X-Frame-Options "DENY"
@@ -55,31 +39,32 @@ DirectoryIndex index.php index.html
   Header always set Cross-Origin-Opener-Policy "same-origin"
   Header always set Cross-Origin-Resource-Policy "same-site"
   Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://api-maps.yandex.ru https://yastatic.net https://www.gstatic.com; worker-src 'self' blob:; connect-src 'self' blob: data: https://api.telegram.org https://search-maps.yandex.ru https://yandex.ru https://www.gstatic.com; frame-src 'self' https://yandex.ru https://api-maps.yandex.ru; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
-  # Don't leak server fingerprint
   Header always unset X-Powered-By
   Header always unset Server
 </IfModule>
 
-# --- Serve Astro build from /dist/ when no PHP match --------
-# Only for GET requests to paths that don't map to existing PHP files
+# --- Root: serve dist/index.html directly ---
+RewriteRule ^$ /dist/index.html [L]
+
+# --- Serve Astro build from /dist/ for non-PHP requests ---
+# Skip: already in /dist/, static asset folders, PHP files, real files
 RewriteCond %{REQUEST_URI} !^/dist/
 RewriteCond %{REQUEST_URI} !^/IMG/
 RewriteCond %{REQUEST_URI} !^/icons/
 RewriteCond %{REQUEST_URI} !\.php$
 RewriteCond %{REQUEST_URI} !\.(env|htaccess|ini|log|json)$
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ /dist/$1 [L]
 
-# --- Directory index: serve dist/index.html first ---
-DirectoryIndex dist/index.html index.php
+# --- Directory index ---
+DirectoryIndex index.html index.php
 
-# --- Gzip for text assets (helps SEO + LCP) -----------------
+# --- Gzip ---
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>
 
-# --- Cache static assets (IMG, icons, fonts) ----------------
+# --- Cache static assets ---
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/webp "access plus 1 year"
