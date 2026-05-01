@@ -47,10 +47,12 @@ jobs:
             set ftp:ssl-force no;
             set ssl:verify-certificate no;
             set ftp:passive-mode yes;
-            set net:timeout 30;
+            set ftp:use-site-chmod no;
+            set ftp:use-mlsd no;
+            set net:timeout 60;
             set net:max-retries 3;
             open -u '$FTP_USER','$FTP_PASS' ftp://$FTP_SERVER;
-            mirror --reverse --delete --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ ${FTP_DIR}dist/;
+            mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ ${FTP_DIR}dist/;
             bye;
           "
 
@@ -67,9 +69,11 @@ jobs:
             set ftp:ssl-force no;
             set ssl:verify-certificate no;
             set ftp:passive-mode yes;
-            set net:timeout 30;
+            set ftp:use-site-chmod no;
+            set ftp:use-mlsd no;
+            set net:timeout 60;
             set net:max-retries 3;
             open -u '$FTP_USER','$FTP_PASS' ftp://$FTP_SERVER;
-            mirror --reverse --delete --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ ${FTP_DIR};
+            mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ ${FTP_DIR};
             bye;
           "
