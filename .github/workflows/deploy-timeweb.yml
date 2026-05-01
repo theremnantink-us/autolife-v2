@@ -34,6 +34,25 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
+      - name: Check FTP root directory
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.FTP_SERVER_DIR }}
+        run: |
+          lftp -c "
+            set ftp:ssl-allow yes; set ftp:ssl-force no;
+            set ssl:verify-certificate no; set ftp:passive-mode yes;
+            set ftp:use-mlsd no; set net:timeout 30;
+            open -u '$FTP_USER','$FTP_PASS' ftp://$FTP_SERVER;
+            echo === FTP root ===;
+            pwd;
+            ls;
+            echo === Target dir: $FTP_DIR ===;
+            bye;
+          "
+
       # Deploy built frontend (dist/) to public_html/dist/ on TimeWeb
       - name: Deploy frontend via lftp
         env:
