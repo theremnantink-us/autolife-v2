@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 
-const isGHPages = process.env.GITHUB_ACTIONS === 'true';
+const isGHPages = process.env.GITHUB_ACTIONS === 'true' && process.env.DEPLOY_TARGET !== 'timeweb';
 
 export default defineConfig({
   site: isGHPages ? 'https://theremnantink-us.github.io' : 'https://autolife-detail.ru',
