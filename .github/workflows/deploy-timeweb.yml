@@ -34,7 +34,7 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      - name: List FTP root contents
+      - name: List autolife.ru/ contents (verify webroot)
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
@@ -48,22 +48,14 @@ jobs:
           set ftp:use-mlsd no
           set net:timeout 30
           open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
+          cd autolife.ru
           pwd
-          echo "=== ROOT (cls -la) ==="
           cls -la
-          echo "=== ROOT (find depth 1) ==="
-          find -d 1
-          echo "=== TRY autolife-detail.ru ==="
-          cls -la autolife-detail.ru/ || echo "no such folder"
-          echo "=== TRY www ==="
-          cls -la www/ || echo "no such folder"
-          echo "=== TRY public_html ==="
-          cls -la public_html/ || echo "no such folder"
           bye
           EOF
-          timeout 90 lftp -f /tmp/list.lftp || echo "Listing failed/timed out"
+          timeout 60 lftp -f /tmp/list.lftp || echo "Listing failed/timed out"
 
-      # Deploy built frontend (dist/) → public_html/dist/ on TimeWeb
+      # Deploy frontend (dist/) → autolife.ru/public_html/dist/ on TimeWeb
       - name: Deploy frontend via lftp
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -80,12 +72,12 @@ jobs:
           set net:timeout 60
           set net:max-retries 3
           open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
-          mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ public_html/dist/
+          mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/
           bye
           EOF
           lftp -f /tmp/frontend.lftp
 
-      # Deploy PHP backend (public_html/) → public_html/ on TimeWeb
+      # Deploy PHP backend (public_html/) → autolife.ru/public_html/ on TimeWeb
       - name: Deploy PHP backend via lftp
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -102,7 +94,7 @@ jobs:
           set net:timeout 60
           set net:max-retries 3
           open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
-          mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ public_html/
+          mirror --reverse --delete --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/
           bye
           EOF
           lftp -f /tmp/backend.lftp
