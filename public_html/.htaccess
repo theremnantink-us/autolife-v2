@@ -47,12 +47,13 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteRule ^$ /dist/index.html [L]
 
 # --- Serve Astro build from /dist/ for non-PHP requests ---
-# Skip: already in /dist/, static asset folders, PHP files, real files
+# All requests not already in /dist/, not PHP, not blocked, and not
+# a real file at root → rewrite to /dist/$1.
+# IMG/, icons/, _astro/, models/, hdri/ live INSIDE dist/, so they
+# must NOT be excluded here (excluding them caused 404s for assets).
 RewriteCond %{REQUEST_URI} !^/dist/
-RewriteCond %{REQUEST_URI} !^/IMG/
-RewriteCond %{REQUEST_URI} !^/icons/
 RewriteCond %{REQUEST_URI} !\.php$
-RewriteCond %{REQUEST_URI} !\.(env|htaccess|ini|log|json)$
+RewriteCond %{REQUEST_URI} !\.(env|htaccess|ini|log)$
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ /dist/$1 [L]
 
