@@ -34,27 +34,6 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      - name: List autolife.ru/ contents (verify webroot)
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USER: ${{ secrets.FTP_USERNAME }}
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          cat > /tmp/list.lftp <<EOF
-          set ftp:ssl-allow yes
-          set ftp:ssl-force no
-          set ssl:verify-certificate no
-          set ftp:passive-mode yes
-          set ftp:use-mlsd no
-          set net:timeout 30
-          open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
-          cd autolife.ru
-          pwd
-          cls -la
-          bye
-          EOF
-          timeout 60 lftp -f /tmp/list.lftp || echo "Listing failed/timed out"
-
       # Wipe dist/ folder first — clears any stale files with bad perms
       - name: Wipe remote dist/ folder
         env:
@@ -68,12 +47,13 @@ jobs:
           set ssl:verify-certificate no
           set ftp:passive-mode yes
           set ftp:use-mlsd no
-          set net:timeout 60
+          set net:timeout 30
+          set net:max-retries 2
           open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
           rm -rf autolife.ru/public_html/dist
           bye
           EOF
-          lftp -f /tmp/wipe.lftp || echo "Wipe failed or already gone — continuing"
+          timeout 180 lftp -f /tmp/wipe.lftp || echo "Wipe failed/timed out — continuing anyway"
 
       # Deploy frontend (dist/) → autolife.ru/public_html/dist/ on TimeWeb
       - name: Deploy frontend via lftp
