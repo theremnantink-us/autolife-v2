@@ -16,6 +16,16 @@ import {
 } from '@react-three/drei';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+
+// R3F still uses THREE.Clock internally (deprecated in THREE r168+).
+// Suppress the one-time deprecation warning until R3F upgrades to THREE.Timer.
+if (typeof window !== 'undefined') {
+  const _warn = console.warn.bind(console);
+  console.warn = (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('THREE.Clock:')) return;
+    _warn(...args);
+  };
+}
 // IMPORTANT: drei's useGLTF expects loaders from three-stdlib, not from
 // three/examples/jsm — those are different *class instances* and the
 // instanceof / setDRACOLoader dance only works when both sides agree.

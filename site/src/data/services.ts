@@ -36,7 +36,7 @@ export const services: Service[] = [
     price: 'от 1100 руб.',
     priceValue: 1100,
     description: 'Тщательная очистка кузова с использованием профессиональных средств',
-    image: '/IMG/CarWash.webp',
+    image: '/IMG/service-car-wash.webp',
     alt: 'Мойка кузова',
     includes: [
       'Бесконтактная мойка высокого давления',
@@ -52,7 +52,7 @@ export const services: Service[] = [
     price: 'от 2100 руб.',
     priceValue: 2100,
     description: 'Полный уход за автомобилем снаружи и внутри',
-    image: '/IMG/CarWash_complex.webp',
+    image: '/IMG/service-complex-wash.webp',
     alt: 'Комплексная мойка',
     includes: [
       'Двухфазная мойка кузова',
@@ -70,7 +70,7 @@ export const services: Service[] = [
     price: 'от 1500 руб.',
     priceValue: 1500,
     description: 'Ультра-гидрофобное покрытие для защиты и блеска',
-    image: '/IMG/Кварцевое_покрытие.webp',
+    image: '/IMG/service-quartz-coating.webp',
     alt: 'Кварцевое покрытие',
     includes: [
       'Мгновенное нанесение',
@@ -86,7 +86,7 @@ export const services: Service[] = [
     price: 'от 3000 руб.',
     priceValue: 3000,
     description: 'Очистка двигателя от грязи и масляных пятен',
-    image: '/IMG/Консервация_двигателя.webp',
+    image: '/IMG/service-engine-wash.webp',
     alt: 'Мойка двигателя',
     includes: [
       'Использование диэлектрического геля',
@@ -102,7 +102,7 @@ export const services: Service[] = [
     price: 'от 2900 руб.',
     priceValue: 2900,
     description: 'Трёхфазная мойка с использованием щадящих средств',
-    image: '/IMG/NANO.webp',
+    image: '/IMG/service-nano-complex.webp',
     alt: 'NANO Комплекс',
     includes: [
       'Использование бесщелочной пены',
@@ -118,7 +118,7 @@ export const services: Service[] = [
     price: 'от 6000 руб.',
     priceValue: 6000,
     description: 'Глубокая очистка с профессиональными средствами',
-    image: '/IMG/Detailing.webp',
+    image: '/IMG/service-detailing-wash.webp',
     alt: 'Детейлинг мойка',
     includes: [
       'Двухэтапное удаление глубоких загрязнений кузова',
@@ -216,7 +216,7 @@ export const services: Service[] = [
     price: 'от 25 000 руб.',
     priceValue: 25000,
     description: 'Восстановление блеска лакокрасочного покрытия',
-    image: '/IMG/Полировка_кузова.webp',
+    image: '/IMG/service-body-polishing.webp',
     alt: 'Полировка кузова',
     includes: [
       'Удаление царапин и сколов',
@@ -232,7 +232,7 @@ export const services: Service[] = [
     price: 'от 1500 руб.',
     priceValue: 1500,
     description: 'Восстановление и полировка хромированных деталей',
-    image: '/IMG/Восстановление_хромированных_элементов.webp',
+    image: '/IMG/service-chrome-restoration.webp',
     alt: 'Восстановление хрома',
     includes: [
       'Обезжиривание поверхности',
@@ -249,7 +249,7 @@ export const services: Service[] = [
     price: 'от 4000 руб.',
     priceValue: 4000,
     description: 'Глубокая очистка и восстановление кожаных сидений',
-    image: '/IMG/Leather.webp',
+    image: '/IMG/service-leather-cleaning.webp',
     alt: 'Химчистка кожаных сидений',
     includes: [
       'Глубокая очистка кожи',
@@ -266,7 +266,7 @@ export const services: Service[] = [
     price: 'от 18 000 руб.',
     priceValue: 18000,
     description: 'Глубокая очистка всех поверхностей кузова и салона',
-    image: '/IMG/khimchistka.webp',
+    image: '/IMG/service-interior-cleaning.webp',
     alt: 'Химчистка салона',
     includes: [
       'Глубокая очистка кузова',
@@ -283,7 +283,7 @@ export const services: Service[] = [
     price: 'от 2000 руб.',
     priceValue: 2000,
     description: 'Восстановление прозрачности фар',
-    image: '/IMG/Полировка_фар.webp',
+    image: '/IMG/service-headlight-polishing.webp',
     alt: 'Полировка фар',
     includes: [
       'Удаление помутнений',
@@ -299,7 +299,7 @@ export const services: Service[] = [
     price: 'от 3500 руб.',
     priceValue: 3500,
     description: 'Нанесение гидрофобного покрытия на стёкла',
-    image: '/IMG/Антидождь.webp',
+    image: '/IMG/service-rain-repellent.webp',
     alt: 'Антидождь',
     includes: [
       'Улучшенная видимость в дождь',
@@ -317,7 +317,7 @@ export const services: Service[] = [
     price: 'от 450 руб.',
     priceValue: 450,
     description: 'Профессиональный шиномонтаж с гарантией качества',
-    image: '/IMG/Шиномонтаж.webp',
+    image: '/IMG/service-tire-fitting.webp',
     alt: 'Шиномонтаж',
     includes: [
       'Снятие/установка колёс',
@@ -334,7 +334,7 @@ export const services: Service[] = [
     price: 'от 150 руб.',
     priceValue: 150,
     description: 'Точная балансировка для комфортной езды',
-    image: '/IMG/Балансировка.webp',
+    image: '/IMG/service-wheel-balancing.webp',
     alt: 'Балансировка колёс',
     includes: [
       'Компьютерная балансировка',
@@ -350,7 +350,7 @@ export const services: Service[] = [
     price: 'от 1000 руб.',
     priceValue: 1000,
     description: 'Качественный ремонт проколов и порезов шин',
-    image: '/IMG/Ремонт_бокового_пореза.webp',
+    image: '/IMG/service-sidewall-repair.webp',
     alt: 'Ремонт бокового пореза',
     includes: [
       'Ремонт бескамерных шин',
@@ -366,7 +366,7 @@ export const services: Service[] = [
     price: 'от 5500 руб./сезон',
     priceValue: 5500,
     description: 'Правильное хранение шин в межсезонье',
-    image: '/IMG/Хранение_шин.webp',
+    image: '/IMG/service-tire-storage.webp',
     alt: 'Хранение шин',
     includes: [
       'Специальное помещение',
@@ -382,7 +382,7 @@ export const services: Service[] = [
     price: 'от 300 руб.',
     priceValue: 300,
     description: 'Восстановление внешнего вида дисков',
-    image: '/IMG/Шлифовка_бортов_диска.webp',
+    image: '/IMG/service-disc-grinding.webp',
     alt: 'Шлифовка бортов диска',
     includes: [
       'Устранение царапин и следов эксплуатации',

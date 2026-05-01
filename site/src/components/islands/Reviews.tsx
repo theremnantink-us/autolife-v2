@@ -1,18 +1,13 @@
 /**
  * Reviews — Yandex business card.
  *
- * Two layers:
- *  1. Live rating summary (★ avg + count) fetched once from Yandex Search
- *     Maps API. Falls back silently to a placeholder if the API returns
- *     nothing useful (free-tier quotas vary).
- *  2. Reviews carousel: official Yandex Maps reviews widget in an iframe —
- *     this is the canonical, ToS-compliant way to surface review text.
- *
- * No personal data is sent to Yandex; only the public org id and our API
- * key (which is rate-limited at the Yandex side).
+ * Left column: live rating summary fetched from Yandex Search Maps API.
+ * Right column: static review cards (Yandex's widget iframe is blocked by
+ * their own X-Frame-Options: sameorigin on external domains).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { fallbackReviews, type Review } from '../../content/reviews';
 
 interface Props {
   apiKey: string;
@@ -33,18 +28,50 @@ const FALLBACK: OrgSummary = {
   url: 'https://yandex.ru/maps/org/avtolayf/15713727058/',
 };
 
+function StarRow({ rating }: { rating: number }) {
+  const filled = Math.round(rating);
+  return (
+    <span className="rev__stars" aria-hidden="true">
+      {Array.from({ length: 5 }, (_, i) => (
+        <span key={i} className={`rev__star${i < filled ? ' is-on' : ''}`}>★</span>
+      ))}
+    </span>
+  );
+}
+
+function ReviewCard({ r }: { r: Review }) {
+  const d = new Date(r.date);
+  const label = d.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long' });
+  return (
+    <article className="rev-card glass">
+      <header className="rev-card__head">
+        <div className="rev-card__avatar" aria-hidden="true">
+          {r.author.charAt(0)}
+        </div>
+        <div>
+          <p className="rev-card__author">{r.author}</p>
+          <p className="rev-card__car">{r.car}</p>
+        </div>
+        <StarRow rating={r.rating} />
+      </header>
+      <blockquote className="rev-card__text">{r.text}</blockquote>
+      <footer className="rev-card__footer">
+        <span className="rev-card__date">{label}</span>
+        <span className="rev-card__badge">Яндекс.Карты</span>
+      </footer>
+    </article>
+  );
+}
+
 export default function Reviews({ apiKey, placeId }: Props) {
   const [summary, setSummary] = useState<OrgSummary>(FALLBACK);
-  const [loaded, setLoaded] = useState(false);
-  const [iframeReady, setIframeReady] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    if (!apiKey || !placeId) { setLoaded(true); return; }
+    if (!apiKey || !placeId) return;
     const ctrl = new AbortController();
     const url = new URL('https://search-maps.yandex.ru/v1/');
     url.searchParams.set('apikey', apiKey);
-    url.searchParams.set('text',  ''); // type=biz with id is sufficient
+    url.searchParams.set('text',  '');
     url.searchParams.set('type',  'biz');
     url.searchParams.set('lang',  'ru_RU');
     url.searchParams.set('id',    placeId);
@@ -58,46 +85,43 @@ export default function Reviews({ apiKey, placeId }: Props) {
         const next: OrgSummary = { ...FALLBACK };
         if (meta?.name) next.name = meta.name;
         if (meta?.url)  next.url  = meta.url;
-        // Search API exposes rating sometimes; keep fallback if missing
-        const r = (meta as any)?.ratings?.avg ?? (feat as any)?.ratings?.avg;
-        const c = (meta as any)?.ratings?.count ?? (feat as any)?.ratings?.count;
-        if (typeof r === 'number') next.rating = r;
-        if (typeof c === 'number') next.reviewCount = c;
+        const r2 = (meta as any)?.ratings?.avg ?? (feat as any)?.ratings?.avg;
+        const c  = (meta as any)?.ratings?.count ?? (feat as any)?.ratings?.count;
+        if (typeof r2 === 'number') next.rating = r2;
+        if (typeof c  === 'number') next.reviewCount = c;
         setSummary(next);
       })
-      .catch(() => { /* keep fallback */ })
-      .finally(() => setLoaded(true));
+      .catch(() => { /* keep fallback */ });
 
     return () => ctrl.abort();
   }, [apiKey, placeId]);
 
-  const widgetSrc = `https://yandex.ru/maps-reviews-widget/${encodeURIComponent(placeId)}?comments`;
   const stars = Math.round((summary.rating ?? 0) * 10) / 10;
+  const yandexUrl = summary.url ?? FALLBACK.url;
 
   return (
     <section className="rev" id="reviews" aria-labelledby="reviews-heading">
       <div className="container rev__layout">
+
         {/* ── Left column: heading + rating summary ─────────────────── */}
         <div className="rev__lead-col">
           <header className="section__head rev__head">
             <p className="eyebrow">Отзывы</p>
             <h2 id="reviews-heading" className="section__title">Что говорят клиенты</h2>
             <p className="section__lead">
-              Реальные отзывы из карточки организации в Яндекс.Картах. Обновляются автоматически.
+              Реальные отзывы клиентов АвтоЛайф. Все отзывы также доступны на Яндекс.Картах.
             </p>
           </header>
 
           <div className="rev__summary glass" aria-live="polite">
             <div className="rev__rating">
-              <span className="rev__rating-num" aria-label={`Рейтинг ${stars} из 5`}>{stars.toFixed(1)}</span>
-              <span className="rev__stars" aria-hidden="true">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <span
-                    key={i}
-                    className={`rev__star${i < Math.round(stars) ? ' is-on' : ''}`}
-                  >★</span>
-                ))}
+              <span
+                className="rev__rating-num"
+                aria-label={`Рейтинг ${stars} из 5`}
+              >
+                {stars.toFixed(1)}
               </span>
+              <StarRow rating={stars} />
             </div>
             <div className="rev__meta">
               <p className="rev__brand">{summary.name}</p>
@@ -108,30 +132,29 @@ export default function Reviews({ apiKey, placeId }: Props) {
               </p>
             </div>
             <a
-              href={summary.url ?? FALLBACK.url}
+              href={yandexUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn--ghost rev__cta"
             >
-              Открыть в Яндекс
+              Все отзывы →
             </a>
           </div>
         </div>
 
-        {/* ── Right column: live widget iframe ──────────────────────── */}
-        <div className="rev__widget-wrap">
-          <div className={`rev__widget${iframeReady ? ' is-ready' : ''}`}>
-            {!iframeReady && <div className="rev__skeleton" aria-hidden="true" />}
-            <iframe
-              ref={iframeRef}
-              title="Отзывы об АвтоЛайф в Яндекс.Картах"
-              src={widgetSrc}
-              loading="lazy"
-              referrerPolicy="strict-origin-when-cross-origin"
-              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              onLoad={() => setIframeReady(true)}
-            />
-          </div>
+        {/* ── Right column: static review cards ─────────────────────── */}
+        <div className="rev__cards-col">
+          {fallbackReviews.map((r, i) => (
+            <ReviewCard key={i} r={r} />
+          ))}
+          <a
+            href={yandexUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rev__more-link"
+          >
+            Читать все отзывы на Яндекс.Картах →
+          </a>
         </div>
       </div>
 
@@ -142,10 +165,6 @@ export default function Reviews({ apiKey, placeId }: Props) {
           padding-block: var(--space-9);
           background: transparent;
         }
-        /* Animated chrome paths-style border around the reviews container,
-           inspired by kokonutd's background-paths. The conic gradient spins
-           every 9s; the mask carves out the inner hole so only the 1.5px
-           ring is visible. */
         .rev .container {
           position: relative;
           padding: var(--space-7) var(--space-6);
@@ -197,6 +216,7 @@ export default function Reviews({ apiKey, placeId }: Props) {
         @media (max-width: 599px) {
           .rev .container { padding: var(--space-5) var(--space-4); }
         }
+
         .rev__head { max-width: 60ch; margin-bottom: var(--space-6); }
 
         .rev__summary {
@@ -207,7 +227,6 @@ export default function Reviews({ apiKey, placeId }: Props) {
           border-radius: var(--r-lg);
           margin-bottom: var(--space-5);
         }
-        /* Two-column layout — copy/CTA left, live Yandex widget right. */
         .rev__layout {
           display: grid;
           gap: var(--space-5);
@@ -216,7 +235,7 @@ export default function Reviews({ apiKey, placeId }: Props) {
         }
         @media (min-width: 1024px) {
           .rev__layout {
-            grid-template-columns: minmax(0, 1fr) 580px;
+            grid-template-columns: minmax(0, 1fr) 520px;
             gap: var(--space-6);
           }
         }
@@ -263,63 +282,97 @@ export default function Reviews({ apiKey, placeId }: Props) {
         }
         .rev__cta { padding: 10px 18px; font-size: 11px; }
 
-        /* Yandex widget renders at its native ~580px width. On desktop it
-           lives in the right column of rev__layout; on mobile it falls
-           below the lead column. */
-        .rev__widget-wrap {
+        /* ── Review cards ─── */
+        .rev__cards-col {
           display: flex;
+          flex-direction: column;
+          gap: var(--space-4);
+        }
+        .rev-card {
+          padding: var(--space-5);
+          border-radius: var(--r-lg);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
+        }
+        .rev-card__head {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
+        }
+        .rev-card__avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: var(--graphite);
+          border: 1px solid var(--hairline);
+          display: flex;
+          align-items: center;
           justify-content: center;
+          font-family: var(--font-display);
+          font-weight: 700;
+          font-size: 16px;
+          color: var(--chrome-1);
+          flex-shrink: 0;
         }
-        @media (min-width: 1024px) {
-          .rev__widget-wrap { justify-content: flex-end; }
+        .rev-card__author {
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 15px;
+          color: var(--text);
         }
-        .rev__widget {
-          position: relative;
-          width: 100%;
-          max-width: 580px;
-          background: #0e1013;
+        .rev-card__car {
+          font-size: 12px;
+          color: var(--text-muted);
+          margin-top: 1px;
+        }
+        .rev-card__head .rev__stars {
+          margin-left: auto;
+          font-size: 13px;
+        }
+        .rev-card__text {
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--text-dim);
+          margin: 0;
+          border-left: 2px solid var(--hairline);
+          padding-left: var(--space-3);
+          font-style: italic;
+        }
+        .rev-card__footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--space-3);
+        }
+        .rev-card__date {
+          font-size: 12px;
+          color: var(--text-muted);
+        }
+        .rev-card__badge {
+          font-size: 10px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--text-dim);
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--hairline);
+          border-radius: 4px;
+          padding: 2px 8px;
+        }
+        .rev__more-link {
+          display: block;
+          text-align: center;
+          font-size: 13px;
+          color: var(--text-muted);
+          text-decoration: none;
+          padding: var(--space-3);
           border: 1px solid var(--hairline);
           border-radius: var(--r-lg);
-          overflow: hidden;
-          min-height: 580px;
+          transition: color 0.2s, border-color 0.2s;
         }
-        .rev__widget iframe {
-          width: 100%;
-          height: 580px;
-          border: 0;
-          display: block;
-          opacity: 0;
-          transition: opacity 0.45s var(--ease-out);
-          background: #fff;
-          /* Yandex serves a light theme that we can't restyle directly. We
-             flip the colour space via a CSS filter — invert turns the white
-             background into near-black, hue-rotate restores the original
-             hues so star ratings, accents and avatars don't end up cyan. */
-          filter: invert(0.92) hue-rotate(180deg);
-        }
-        .rev__widget.is-ready iframe { opacity: 1; }
-
-        .rev__skeleton {
-          position: absolute;
-          inset: 0;
-          background:
-            linear-gradient(90deg,
-              transparent 0%,
-              rgba(232,234,237,0.04) 35%,
-              rgba(232,234,237,0.08) 50%,
-              rgba(232,234,237,0.04) 65%,
-              transparent 100%
-            ),
-            var(--graphite);
-          background-size: 250% 100%, 100% 100%;
-          animation: revShimmer 1.6s linear infinite;
-        }
-        @keyframes revShimmer {
-          0%   { background-position: 100% 0, 0 0; }
-          100% { background-position: -100% 0, 0 0; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .rev__skeleton { animation: none; }
+        .rev__more-link:hover {
+          color: var(--chrome-1);
+          border-color: var(--chrome-1);
         }
 
         @media (max-width: 767px) {
@@ -339,8 +392,6 @@ export default function Reviews({ apiKey, placeId }: Props) {
             width: 100%;
           }
           .rev__cta { width: 100%; text-align: center; justify-content: center; }
-          .rev__widget { min-height: 520px; }
-          .rev__widget iframe { height: 520px; }
         }
       `}</style>
     </section>
