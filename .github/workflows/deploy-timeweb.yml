@@ -49,10 +49,19 @@ jobs:
           set net:timeout 30
           open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
           pwd
+          echo "=== ROOT (cls -la) ==="
           cls -la
+          echo "=== ROOT (find depth 1) ==="
+          find -d 1
+          echo "=== TRY autolife-detail.ru ==="
+          cls -la autolife-detail.ru/ || echo "no such folder"
+          echo "=== TRY www ==="
+          cls -la www/ || echo "no such folder"
+          echo "=== TRY public_html ==="
+          cls -la public_html/ || echo "no such folder"
           bye
           EOF
-          timeout 60 lftp -f /tmp/list.lftp || echo "Listing failed/timed out"
+          timeout 90 lftp -f /tmp/list.lftp || echo "Listing failed/timed out"
 
       # Deploy built frontend (dist/) → public_html/dist/ on TimeWeb
       - name: Deploy frontend via lftp
