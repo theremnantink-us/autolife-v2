@@ -40,6 +40,9 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./site/dist/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}dist/
+          protocol: ftp
+          port: 21
+          timeout: 60000
           exclude: |
             **/.git*
             **/.git*/**
@@ -54,6 +57,9 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./public_html/
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          protocol: ftp
+          port: 21
+          timeout: 60000
           exclude: |
             **/.git*
             **/.git*/**
