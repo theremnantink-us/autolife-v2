@@ -55,6 +55,26 @@ jobs:
           EOF
           timeout 60 lftp -f /tmp/list.lftp || echo "Listing failed/timed out"
 
+      # Wipe dist/ folder first — clears any stale files with bad perms
+      - name: Wipe remote dist/ folder
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          cat > /tmp/wipe.lftp <<EOF
+          set ftp:ssl-allow yes
+          set ftp:ssl-force no
+          set ssl:verify-certificate no
+          set ftp:passive-mode yes
+          set ftp:use-mlsd no
+          set net:timeout 60
+          open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
+          rm -rf autolife.ru/public_html/dist
+          bye
+          EOF
+          lftp -f /tmp/wipe.lftp || echo "Wipe failed or already gone — continuing"
+
       # Deploy frontend (dist/) → autolife.ru/public_html/dist/ on TimeWeb
       - name: Deploy frontend via lftp
         env:
@@ -69,6 +89,7 @@ jobs:
           set ftp:passive-mode yes
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
+          set xfer:clobber yes
           set net:timeout 60
           set net:max-retries 3
           open -u "$FTP_USER","$FTP_PASS" "$FTP_SERVER"
