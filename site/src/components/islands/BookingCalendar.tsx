@@ -1,23 +1,13 @@
 /**
  * BookingCalendar — custom hour-slot calendar for the booking form.
  *
- * Replaces the Flatpickr widget. Two-column layout on desktop:
- *   ┌──────────────┬────────────────────┐
- *   │ Month grid   │ Slots for selected │
- *   │ (highlighted │ day, 1-hour blocks │
- *   │  available)  │                    │
- *   └──────────────┴────────────────────┘
- *
- * Works offline against a static schedule:
- *   • Sun — closed
- *   • Mon–Fri 9-21
- *   • Sat 10-20
+ * Schedule:
+ *   • Mon–Fri 8–22
+ *   • Sat–Sun 9–21
  *   • busyDates passed in → mark whole day grey
  *   • Past time on the current day → disabled
- *   • Two months visible (current + next), navigable.
  *
- * Emits 'YYYY-MM-DD HH:mm' to onChange — same contract as the previous
- * Flatpickr field, so the rest of the booking form is untouched.
+ * Emits 'YYYY-MM-DD HH:mm' to onChange.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -38,13 +28,13 @@ const RU_MONTH = [
 
 /** Working hours per ISO weekday (0 = Sun … 6 = Sat). */
 const HOURS: Record<number, { start: number; end: number } | null> = {
-  0: null,                         // Sun closed
-  1: { start: 9, end: 21 },        // Mon
-  2: { start: 9, end: 21 },
-  3: { start: 9, end: 21 },
-  4: { start: 9, end: 21 },
-  5: { start: 9, end: 21 },        // Fri
-  6: { start: 10, end: 20 },       // Sat
+  0: { start: 9, end: 21 },        // Sun
+  1: { start: 8, end: 22 },        // Mon
+  2: { start: 8, end: 22 },
+  3: { start: 8, end: 22 },
+  4: { start: 8, end: 22 },
+  5: { start: 8, end: 22 },        // Fri
+  6: { start: 9, end: 21 },        // Sat
 };
 
 const pad   = (n: number) => String(n).padStart(2, '0');

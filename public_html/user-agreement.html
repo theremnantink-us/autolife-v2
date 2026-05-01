@@ -1,231 +1,196 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пользовательское соглашение — АвтоЛайф</title>
-    <style>
-        :root {
-            --primary: #121212;
-            --secondary: #1a1a1a;
-            --accent: #b22222;
-            --accent-light: #d63333;
-            --text: #f5f5f5;
-            --text-secondary: #aaaaaa;
-            --border: #333333;
-            --card-bg: #1e1e1e;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--primary);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-        .container {
-            width: 100%;
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        header {
-            background: rgba(0,0,0,0.95);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        .header-content {
-            display: flex;
-            align-items: center;
-            padding: 16px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            gap: 20px;
-        }
-        .logo-text {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text);
-            text-decoration: none;
-            letter-spacing: 0.05em;
-        }
-        .logo-text span { color: var(--accent); }
-        .back-link {
-            margin-left: auto;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-        .back-link:hover { color: var(--accent); }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08090b">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Пользовательское соглашение — АвтоЛайф</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800&display=swap">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    :root {
+      --bg: #08090b; --bg-elev: #14161a;
+      --text: #e8eaed; --text-mute: #a4a8af; --text-dim: #6e7278;
+      --chrome-1: #d6d6d6; --chrome-2: #b9b9b9;
+      --chrome-grad: linear-gradient(135deg, #d6d6d6 0%, #9a9a9a 50%, #d6d6d6 100%);
+      --hairline: rgba(232,234,237,0.10);
+      --hairline-strong: rgba(232,234,237,0.22);
+      --glass-bg: rgba(20,22,26,0.55);
+      --r-sm: 8px; --r-md: 14px; --r-lg: 20px;
+      --font-body:    'Inter', system-ui, sans-serif;
+      --font-display: 'Orbitron', 'Inter', sans-serif;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100svh;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(214,214,214,0.06), transparent 60%),
+        radial-gradient(900px 500px at -5% 80%, rgba(214,214,214,0.04), transparent 70%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--chrome-1); text-decoration: none; transition: color 180ms; }
+    a:hover { color: #fff; }
 
-        main { padding: 120px 0 80px; }
-        h1 {
-            font-size: clamp(1.8rem, 4vw, 2.4rem);
-            font-weight: 700;
-            margin-bottom: 12px;
-            position: relative;
-            padding-bottom: 16px;
-        }
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 60px; height: 3px;
-            background: var(--accent);
-        }
-        .meta {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 40px;
-        }
-        h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text);
-            margin: 36px 0 12px;
-        }
-        p, li {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
-        ul, ol {
-            padding-left: 24px;
-            margin-bottom: 16px;
-        }
-        li { margin-bottom: 6px; }
-        a { color: var(--accent-light); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .divider {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 40px 0;
-        }
-        .footer-note {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-align: center;
-            padding: 32px 0;
-            border-top: 1px solid var(--border);
-        }
-    </style>
+    .page { max-width: 880px; margin: 0 auto; padding: clamp(40px, 8vw, 80px) clamp(20px, 5vw, 40px) 80px; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 28px; margin-bottom: 32px; border-bottom: 1px solid var(--hairline); }
+    .brand {
+      font-family: var(--font-display); font-weight: 800; font-size: 20px;
+      letter-spacing: 0.18em;
+      background: var(--chrome-grad);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .back {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border: 1px solid var(--hairline-strong);
+      border-radius: 999px; color: var(--chrome-1);
+      font-family: var(--font-display); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      transition: border-color 180ms, color 180ms, background 180ms;
+    }
+    .back:hover { border-color: var(--chrome-1); background: rgba(214,214,214,0.04); }
+
+    .eyebrow {
+      font-family: var(--font-display); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--chrome-2); margin-bottom: 12px;
+    }
+    h1 {
+      font-family: var(--font-display); font-size: clamp(28px, 5vw, 42px);
+      font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 20px;
+      background: linear-gradient(180deg, #fff 0%, #b8b8b8 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .lead { font-size: 17px; color: var(--text-mute); max-width: 64ch; margin-bottom: 40px; }
+
+    .card {
+      padding: 28px clamp(20px, 4vw, 36px);
+      background: var(--glass-bg); border: 1px solid var(--hairline);
+      border-radius: var(--r-lg);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-family: var(--font-display); font-size: 18px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--chrome-1); margin-bottom: 14px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--hairline);
+    }
+    .card p { color: var(--text-mute); margin-bottom: 12px; }
+    .card ul { padding-left: 22px; margin-bottom: 12px; color: var(--text-mute); }
+    .card ul li { margin-bottom: 6px; }
+    .card ul li::marker { color: var(--chrome-2); }
+
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 24px;
+      padding: 18px 24px; background: rgba(20,22,26,0.4);
+      border: 1px solid var(--hairline); border-radius: var(--r-md);
+      margin-bottom: 32px; font-size: 13px; color: var(--text-dim);
+    }
+    .meta strong { color: var(--text); font-weight: 600; }
+
+    footer.foot {
+      margin-top: 60px; padding-top: 28px;
+      border-top: 1px solid var(--hairline);
+      text-align: center; font-size: 13px; color: var(--text-dim);
+    }
+    footer.foot a { color: var(--chrome-2); }
+
+    @media (max-width: 600px) {
+      .topbar { flex-direction: column; gap: 16px; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">AUTOLIFE</div>
+      <a href="/" class="back">← На главную</a>
+    </header>
 
-<header>
-    <div class="header-content">
-        <a href="/" class="logo-text">Авто<span>Лайф</span></a>
-        <a href="/" class="back-link">← На главную</a>
+    <p class="eyebrow">Документ</p>
+    <h1>Пользовательское соглашение</h1>
+    <p class="lead">
+      Настоящее соглашение регулирует отношения между Автокомплексом «АвтоЛайф» и пользователями сайта autolife-detail.ru.
+    </p>
+
+    <div class="meta">
+      <span>Редакция: <strong>v1.0</strong></span>
+      <span>Дата: <strong>01 мая 2026</strong></span>
+      <span>Юрисдикция: <strong>Российская Федерация</strong></span>
     </div>
-</header>
 
-<main>
-    <div class="container">
-        <h1>Пользовательское соглашение</h1>
-        <p class="meta">Дата вступления в силу: 1 января 2025 г.</p>
+    <article class="card">
+      <h2>1. Общие положения</h2>
+      <p>1.1. Настоящее Пользовательское соглашение (далее — «Соглашение») регулирует отношения между владельцем сайта Автокомплекса «АвтоЛайф» (далее — «Администрация») и Пользователем сайта autolife-detail.ru.</p>
+      <p>1.2. Использование сайта означает безоговорочное согласие Пользователя с настоящим Соглашением и указанными в нём условиями.</p>
+      <p>1.3. В случае несогласия с любым пунктом Соглашения Пользователь обязан прекратить использование сайта.</p>
+    </article>
 
-        <p>
-            Настоящее Пользовательское соглашение (далее — Соглашение) регулирует отношения между
-            ИП «АвтоЛайф» (далее — Компания) и пользователями сайта <a href="/">autolife.ru</a>
-            (далее — Сайт). Используя Сайт или оставляя заявку на услуги, вы принимаете условия
-            настоящего Соглашения в полном объёме.
-        </p>
+    <article class="card">
+      <h2>2. Услуги</h2>
+      <p>Администрация предоставляет следующие категории услуг:</p>
+      <ul>
+        <li>Мойка и детейлинг автомобилей;</li>
+        <li>Шиномонтаж и балансировка колёс;</li>
+        <li>Полировка кузова и фар;</li>
+        <li>Химчистка салона и кожаных сидений;</li>
+        <li>Керамическое и антидождевое покрытия.</li>
+      </ul>
+      <p>Полный прайс-лист и точные цены доступны на странице <a href="/pricelist">/pricelist</a> и при онлайн-записи.</p>
+    </article>
 
-        <hr class="divider" />
+    <article class="card">
+      <h2>3. Обязательства Пользователя</h2>
+      <p>3.1. Пользователь обязуется:</p>
+      <ul>
+        <li>предоставлять достоверные контактные данные при онлайн-записи;</li>
+        <li>не использовать сайт для распространения противоправной информации;</li>
+        <li>не предпринимать попыток несанкционированного доступа к системам сайта;</li>
+        <li>уведомлять об отмене записи не менее чем за 2 часа до назначенного времени.</li>
+      </ul>
+    </article>
 
-        <h2>1. Предмет соглашения</h2>
-        <p>
-            Компания предоставляет Пользователю доступ к информации об услугах автокомплекса
-            и возможность записаться на обслуживание через форму на Сайте.
-        </p>
+    <article class="card">
+      <h2>4. Интеллектуальная собственность</h2>
+      <p>4.1. Все материалы сайта (тексты, графика, дизайн, фотографии работ) являются объектами интеллектуальной собственности Администрации.</p>
+      <p>4.2. Использование материалов сайта без письменного согласия Администрации запрещено.</p>
+    </article>
 
-        <h2>2. Права и обязанности Пользователя</h2>
-        <ul>
-            <li>Предоставлять достоверные данные при заполнении формы записи.</li>
-            <li>Не использовать Сайт в противоправных целях.</li>
-            <li>Не нарушать работу Сайта (DDoS-атаки, автоматические запросы, парсинг).</li>
-            <li>Уведомить Компанию об отмене записи не менее чем за 2 часа до назначенного времени.</li>
-        </ul>
+    <article class="card">
+      <h2>5. Ограничение ответственности</h2>
+      <p>5.1. Администрация не несёт ответственности за технические сбои сторонних сервисов (Яндекс.Карты, Telegram, провайдер хостинга), приводящие к временной недоступности отдельных функций.</p>
+      <p>5.2. Окончательная стоимость услуг определяется на месте после осмотра автомобиля. Указанные на сайте цены являются ориентировочными.</p>
+      <p>5.3. Администрация не гарантирует абсолютную бесперебойность работы сайта, но прилагает разумные усилия для его постоянной доступности.</p>
+    </article>
 
-        <h2>3. Права и обязанности Компании</h2>
-        <ul>
-            <li>Предоставлять услуги в соответствии с прайс-листом и условиями, согласованными с Клиентом.</li>
-            <li>Связаться с Пользователем по указанному номеру телефона для подтверждения записи.</li>
-            <li>В случае невозможности принять Клиента — уведомить его заблаговременно и предложить перенос.</li>
-            <li>Хранить персональные данные в соответствии с <a href="/privacy-policy.html">Политикой конфиденциальности</a>.</li>
-        </ul>
+    <article class="card">
+      <h2>6. Конфиденциальность</h2>
+      <p>Обработка персональных данных Пользователя осуществляется в соответствии с <a href="/privacy-policy.html">Политикой конфиденциальности</a>.</p>
+    </article>
 
-        <h2>4. Запись и отмена</h2>
-        <p>
-            Заявка, оставленная через форму Сайта, является предварительной. Запись считается
-            подтверждённой только после звонка оператора. Компания вправе отказать в записи
-            или перенести её без объяснения причин.
-        </p>
-        <p>
-            При опоздании более 15 минут от согласованного времени Компания вправе перенести запись
-            на другой слот или передать время другому клиенту.
-        </p>
+    <article class="card">
+      <h2>7. Заключительные положения</h2>
+      <p>7.1. Настоящее Соглашение регулируется законодательством Российской Федерации.</p>
+      <p>7.2. Споры подлежат разрешению в судебном порядке по месту нахождения Администрации.</p>
+      <p>7.3. Администрация вправе вносить изменения в Соглашение в одностороннем порядке. Актуальная редакция всегда доступна по адресу <a href="/user-agreement.html">/user-agreement.html</a>.</p>
+    </article>
 
-        <h2>5. Ответственность</h2>
-        <p>
-            Компания несёт ответственность за качество оказанных услуг в пределах, установленных
-            законодательством РФ о защите прав потребителей. Компания не несёт ответственности
-            за ущерб, возникший вследствие предоставления Пользователем недостоверных данных.
-        </p>
-        <p>
-            Сайт предоставляется «как есть». Компания не гарантирует бесперебойную работу Сайта
-            и не несёт ответственности за технические сбои.
-        </p>
-
-        <h2>6. Интеллектуальная собственность</h2>
-        <p>
-            Все материалы Сайта (тексты, изображения, логотипы, дизайн) являются собственностью
-            Компании или используются на законном основании. Копирование без письменного разрешения
-            запрещено.
-        </p>
-
-        <h2>7. Персональные данные</h2>
-        <p>
-            Обработка персональных данных осуществляется в соответствии с
-            <a href="/privacy-policy.html">Политикой конфиденциальности</a> и Федеральным законом
-            № 152-ФЗ «О персональных данных». Оставляя заявку, Пользователь даёт согласие
-            на обработку своих персональных данных в целях исполнения услуг.
-        </p>
-
-        <h2>8. Изменение условий</h2>
-        <p>
-            Компания вправе в одностороннем порядке изменять условия настоящего Соглашения.
-            Новая редакция вступает в силу с момента публикации на Сайте. Продолжение использования
-            Сайта после изменений означает согласие с новыми условиями.
-        </p>
-
-        <h2>9. Применимое право</h2>
-        <p>
-            Настоящее Соглашение регулируется законодательством Российской Федерации.
-            Все споры разрешаются в суде по месту нахождения Компании.
-        </p>
-
-        <h2>10. Контакты</h2>
-        <p>
-            По вопросам, связанным с данным Соглашением, обращайтесь:<br>
-            Email: <a href="mailto:avtolive@gmail.com">avtolive@gmail.com</a><br>
-            Телефон: <a href="tel:+79035551055">+7 (903) 555-10-55</a><br>
-            Адрес: Рублёво-Успенское шоссе, п. Горки-10, строение 31А
-        </p>
-
-        <hr class="divider" />
-
-        <div class="footer-note">
-            &copy; 2025 АвтоЛайф. Все права защищены.
-            &nbsp;|&nbsp;
-            <a href="/privacy-policy.html">Политика конфиденциальности</a>
-        </div>
-    </div>
-</main>
-
+    <footer class="foot">
+      <p>&copy; <span id="y"></span> АвтоЛайф · <a href="/privacy-policy.html">Политика конфиденциальности</a> · <a href="/">Главная</a></p>
+    </footer>
+  </div>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>

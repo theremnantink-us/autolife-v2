@@ -3,8 +3,9 @@
  * Load .env from public_html/.env and expose env($key).
  *
  * .env format: INI-style. Parsed once per request and cached in a static var.
- * Throws RuntimeException if the file is missing or malformed — that's fatal
- * because every downstream call (DB, Telegram, CORS) depends on it.
+ * If .env is missing or malformed, returns an empty array — endpoints that
+ * need real values must check the result and degrade gracefully (return 503
+ * or skip, but never crash with 500).
  */
 
 function load_env(): array
@@ -16,12 +17,16 @@ function load_env(): array
 
     $path = __DIR__ . '/../.env';
     if (!is_file($path) || !is_readable($path)) {
-        throw new RuntimeException('.env missing or not readable at ' . $path);
+        error_log('[env] .env missing at ' . $path . ' — using empty config');
+        $cache = [];
+        return $cache;
     }
 
-    $parsed = parse_ini_file($path, false, INI_SCANNER_TYPED);
+    $parsed = @parse_ini_file($path, false, INI_SCANNER_TYPED);
     if ($parsed === false) {
-        throw new RuntimeException('.env parse failed — check syntax');
+        error_log('[env] .env parse failed — using empty config');
+        $cache = [];
+        return $cache;
     }
 
     $cache = $parsed;

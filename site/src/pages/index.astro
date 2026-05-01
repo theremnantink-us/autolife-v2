@@ -14,8 +14,10 @@ import Reviews from '../components/islands/Reviews';
 import BookingForm from '../components/islands/BookingForm';
 import Contacts from '../components/static/Contacts.astro';
 
-const YANDEX_API_KEY  = import.meta.env.PUBLIC_YANDEX_API_KEY  ?? '';
-const YANDEX_PLACE_ID = import.meta.env.PUBLIC_YANDEX_PLACE_ID ?? '';
+// Fallback to known production values so the widget never breaks if the
+// build env vars are not set (e.g. local dev without secrets).
+const YANDEX_API_KEY  = import.meta.env.PUBLIC_YANDEX_API_KEY  ?? '3b583c1c-bc60-4aad-b392-e3149593ef1e';
+const YANDEX_PLACE_ID = import.meta.env.PUBLIC_YANDEX_PLACE_ID ?? '15713727058';
 ---
 <Base>
   <Header slot="header" />

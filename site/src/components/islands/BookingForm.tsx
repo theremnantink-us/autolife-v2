@@ -1,30 +1,25 @@
 /**
  * BookingForm — online appointment form (#booking).
  *
- * Mirrors public_html/index.php form contract: POST JSON → /api.php with
- * fields {name, phone, carBrand, carModel, service, date, additionalInfo,
- * csrf_token}. Date format: 'YYYY-MM-DD HH:mm'.
+ * Submits directly to Supabase (table: bookings). After insert, the
+ * `notify-booking` Edge Function is invoked to fan out to Telegram + email.
  *
  * Security:
- *   - CSRF token fetched from /csrf.php on mount (cookie-bound at server).
- *   - Honeypot field <input name="website"> hidden visually + tabindex=-1;
- *     non-empty submissions are silently dropped.
+ *   - Honeypot field <input name="website"> hidden visually + tabindex=-1.
  *   - Submit timestamp guard (require >= 1.5s between mount and submit).
- *   - All inputs sanitized client-side; server enforces final validation.
- *   - DOMPurify used on any future user-rendered text.
+ *   - Inputs sanitized client-side; Supabase RLS gates the actual write.
  *
  * UX:
  *   - Pre-fill from sessionStorage when service cards trigger
  *     `autolife:booking-prefill` event.
- *   - Flatpickr (Russian locale) with disabled busy dates from
- *     /busy_dates.php and Sundays disallowed (per original site rule).
- *   - Optimistic local state, loading spinner, success / error toasts.
+ *   - Calendar disables blocked dates (read from `blocked_dates` table).
  */
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import BookingCalendar from './BookingCalendar';
 import { bookableEmployees } from '../../data/employees';
 import { carBrands, modelsForBrand } from '../../data/cars';
+import { submitBooking, listClosedDays } from '../../lib/bookings';
 
 const MASTER_ANY = '';   // sentinel: «любой свободный»
 
@@ -110,7 +105,6 @@ function validate(s: FormState): Errors {
 export default function BookingForm() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
-  const [csrf, setCsrf]     = useState<string>('');
   const [busy, setBusy]     = useState<string[]>([]);
   const [pending, setPending] = useState(false);
   const [success, setSuccess] = useState<null | FormState>(null);
@@ -119,22 +113,9 @@ export default function BookingForm() {
 
   const mountedAt = useRef<number>(Date.now());
 
-  // CSRF token + busy dates on mount
+  // Load blocked dates from Supabase
   useEffect(() => {
-    fetch('/csrf.php', { credentials: 'same-origin' })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => setCsrf(d?.csrf_token ?? ''))
-      .catch(() => {
-        // PHP backend unavailable — set a placeholder so the button stays enabled.
-        // The server will reject requests without a real token; the error appears
-        // in the UI as a normal server error message at that point.
-        setCsrf('__dev__');
-      });
-
-    fetch('/busy_dates.php', { credentials: 'same-origin' })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => Array.isArray(d?.busy_dates) ? setBusy(d.busy_dates) : null)
-      .catch(() => { /* tolerate empty; backend has its own validation */ });
+    listClosedDays().then(setBusy).catch(() => { /* tolerate empty */ });
   }, []);
 
   // Pre-fill from service card / promo / employee CTA
@@ -191,37 +172,20 @@ export default function BookingForm() {
     const v = validate(form);
     if (Object.keys(v).length) { setErrors(v); return; }
 
-    if (!csrf) {
-      setServerErr('Не удалось получить защитный токен. Обновите страницу.');
-      return;
-    }
-
     setPending(true);
     try {
-      const res = await fetch('/api.php', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          name: sanitizeText(form.name, 80),
-          phone: sanitizeText(form.phone, 24),
-          carBrand: sanitizeText(form.carBrand, 40),
-          carModel: sanitizeText(form.carModel, 40),
-          service: sanitizeText(form.service, 120),
-          master: form.master ? sanitizeText(form.master, 40) : null,
-          date: form.date,
-          additionalInfo: sanitizeText(form.additionalInfo, 1000),
-          csrf_token: csrf,
-        }),
+      // form.date format: 'YYYY-MM-DD HH:mm' → ISO with Moscow offset
+      const slotIso = form.date.replace(' ', 'T') + ':00+03:00';
+      await submitBooking({
+        name:            sanitizeText(form.name, 80),
+        phone:           sanitizeText(form.phone, 24),
+        car_brand:       sanitizeText(form.carBrand, 40),
+        car_model:       sanitizeText(form.carModel, 40),
+        service:         sanitizeText(form.service, 120),
+        master_id:       form.master ? sanitizeText(form.master, 40) : null,
+        slot_start:      slotIso,
+        additional_info: sanitizeText(form.additionalInfo, 1000),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data?.success === false) {
-        throw new Error(data?.message ?? `Ошибка ${res.status}`);
-      }
-      // Server rotated the CSRF token after success — adopt the new one
-      if (typeof data?.csrf_token === 'string' && data.csrf_token) {
-        setCsrf(data.csrf_token);
-      }
       setSuccess(form);
       setForm(EMPTY);
     } catch (err: any) {
@@ -344,7 +308,7 @@ export default function BookingForm() {
               hasError={!!errors.date}
             />
             <small className="bf-field__hint">
-              Часовые слоты, пн–пт 9:00–21:00, сб 10:00–20:00. Воскресенье — выходной.
+              Часовые слоты, пн–пт 8:00–22:00, сб–вс 9:00–21:00.
             </small>
             {errors.date && <small className="bf-field__error">{errors.date}</small>}
           </div>
@@ -395,7 +359,7 @@ export default function BookingForm() {
             </span>
           </label>
 
-          <button type="submit" className="btn btn--chrome bf-form__submit" disabled={pending || !csrf || !agreed}>
+          <button type="submit" className="btn btn--chrome bf-form__submit" disabled={pending || !agreed}>
             {pending ? 'Отправляем…' : 'Записаться'}
           </button>
         </form>

@@ -11,7 +11,7 @@
  * When Supabase lands, swap the store imports and the UI is unaffected.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { employees, type Employee } from '../../../data/employees';
 import {
   appointmentsStore, deductionsStore, accrualsStore,
@@ -22,6 +22,10 @@ import type {
   AppointmentRecord, Deduction,
 } from '../../../lib/admin/types';
 import { supabase } from '../../../lib/supabase';
+import {
+  listBookings, updateBooking, deleteBooking, subscribeNewBookings,
+  type BookingRow,
+} from '../../../lib/bookings';
 import Journal from './Journal';
 import PayrollPanel from './PayrollPanel';
 import DeductionsPanel from './DeductionsPanel';
@@ -79,7 +83,46 @@ export default function AdminApp() {
   // Force re-pull from store after any mutation
   const refresh = () => setTick(t => t + 1);
 
-  const apps        = useMemo<AppointmentRecord[]>(() => appointmentsStore.list(),  [tick]);
+  // Supabase-backed bookings + realtime notifications
+  const [supaBookings, setSupaBookings] = useState<BookingRow[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!authed) return;
+    listBookings().then(setSupaBookings).catch(() => {});
+    const unsub = subscribeNewBookings((row) => {
+      setSupaBookings(prev => [row, ...prev]);
+      setToast(`Новая заявка: ${row.name ?? '—'} ${row.phone ?? ''}`);
+      // Browser Notification API (if granted)
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification('Новая заявка АвтоЛайф', {
+          body: `${row.name ?? ''} — ${row.phone ?? ''}\n${row.car_brand ?? ''} ${row.car_model ?? ''} • ${row.service ?? ''}`,
+          icon: '/IMG/apple-touch-icon.png',
+          tag: row.id,
+        });
+      }
+      // Beep
+      try { audioRef.current?.play().catch(() => {}); } catch { /* */ }
+      // Auto-hide toast
+      setTimeout(() => setToast(null), 6000);
+    });
+    return unsub;
+  }, [authed, tick]);
+
+  // Request browser notification permission once on first auth
+  useEffect(() => {
+    if (!authed) return;
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, [authed]);
+
+  const apps        = useMemo<AppointmentRecord[]>(
+    () => supaBookings.map(bookingRowToAppointment),
+    [supaBookings],
+  );
   const deductions  = useMemo<Deduction[]>        (() => deductionsStore.list(),   [tick]);
 
   // Auth loading / login screens
@@ -147,9 +190,47 @@ export default function AdminApp() {
       {tab === 'salaries'   && <PayrollPanel    tick={tick} onChange={refresh} />}
       {tab === 'deductions' && <DeductionsPanel tick={tick} onChange={refresh} />}
 
+      {toast && (
+        <div className="aap-toast" role="status" aria-live="polite" onClick={() => { setToast(null); setTab('bookings'); }}>
+          <strong>🔔 {toast}</strong>
+          <span className="aap-toast__hint">Кликните, чтобы открыть Записи</span>
+        </div>
+      )}
+      {/* Tiny notification beep — base64 sine tone (~0.2s) */}
+      <audio
+        ref={audioRef}
+        preload="auto"
+        src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YT9vT18AAA=="
+      />
+
       <Style />
     </div>
   );
+}
+
+/** Convert a Supabase booking row to the legacy AppointmentRecord shape
+ *  used throughout the admin UI. status mapping: done → completed. */
+function bookingRowToAppointment(b: BookingRow): AppointmentRecord {
+  const status =
+    b.status === 'done'      ? 'completed' :
+    b.status === 'cancelled' ? 'cancelled' :
+    b.status === 'confirmed' ? 'confirmed' :
+                               'new';
+  return {
+    id:            b.id,
+    customerName:  b.name  ?? '—',
+    customerPhone: b.phone ?? '',
+    carBrand:      b.car_brand ?? '',
+    carModel:      b.car_model ?? '',
+    serviceName:   b.service   ?? '',
+    servicePrice:  b.service_price ?? 0,
+    masterId:      (b.master_id as any) ?? null,
+    slotStart:     b.slot_start ?? b.created_at,
+    status,
+    additionalInfo: b.additional_info ?? undefined,
+    createdAt:     b.created_at,
+    completedAt:   status === 'completed' ? b.created_at : undefined,
+  };
 }
 
 function formatRub(n: number): string {
@@ -236,17 +317,20 @@ function Bookings({ apps, onChange }: { apps: AppointmentRecord[]; onChange: () 
   const filtered = filter === 'all' ? apps : apps.filter(a => a.status === filter);
   const sorted = [...filtered].sort((a, b) => b.slotStart.localeCompare(a.slotStart));
 
-  const setStatus = (id: string, status: AppointmentRecord['status']) => {
-    const a = apps.find(x => x.id === id);
-    if (!a) return;
-    const completedAt = status === 'completed' ? new Date().toISOString() : a.completedAt;
-    appointmentsStore.upsert({ ...a, status, completedAt });
-    onChange();
+  const setStatus = async (id: string, status: AppointmentRecord['status']) => {
+    const dbStatus =
+      status === 'completed' ? 'done' :
+      status === 'cancelled' ? 'cancelled' :
+      status === 'confirmed' ? 'confirmed' :
+      status === 'no-show'   ? 'cancelled' :
+                               'new';
+    try { await updateBooking(id, { status: dbStatus as any }); onChange(); }
+    catch (e) { console.error(e); alert('Не удалось обновить статус'); }
   };
-  const remove = (id: string) => {
+  const remove = async (id: string) => {
     if (!confirm('Удалить запись?')) return;
-    appointmentsStore.remove(id);
-    onChange();
+    try { await deleteBooking(id); onChange(); }
+    catch (e) { console.error(e); alert('Не удалось удалить запись'); }
   };
 
   return (
@@ -325,6 +409,28 @@ function Style() {
       --aap-dim:    #8a9099;
       color: var(--aap-text);
       font-family: var(--font-display);
+    }
+
+    .aap-toast {
+      position: fixed;
+      right: 20px; bottom: 20px;
+      max-width: 360px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(20, 60, 35, 0.95), rgba(15, 30, 22, 0.95));
+      border: 1px solid rgba(88, 214, 141, 0.5);
+      border-radius: 12px;
+      color: #e6e8ec;
+      font-size: 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      cursor: pointer;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: 4px;
+      animation: aap-slide-in 0.3s ease-out;
+    }
+    .aap-toast__hint { font-size: 11px; color: var(--aap-dim); letter-spacing: 0.04em; }
+    @keyframes aap-slide-in {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
     }
 
     .aap__head {

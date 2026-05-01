@@ -2,15 +2,14 @@
  * Календарь управления доступностью дат для записи.
  *
  * Клик по дню → закрыть/открыть дату.
- * Красный = закрыто вручную, серый = закрыто по умолчанию (воскресенье),
- * зелёный = открыто.
+ * Красный = закрыто вручную, зелёный = открыто.
  *
- * Данные хранятся в localStorage (ключ autolife:admin:availability).
- * Когда Supabase подключён — readRules/writeRules переключаются на таблицу
- * booking_availability.
+ * Данные хранятся в Supabase (таблица blocked_dates).
+ * Все дни недели работают — выходных нет, но админ может закрыть любой день.
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { listBlockedDates, upsertBlockedDate, deleteBlockedDate } from '../../../lib/bookings';
 
 const RU_MONTH = [
   'Январь','Февраль','Март','Апрель','Май','Июнь',
@@ -18,31 +17,15 @@ const RU_MONTH = [
 ] as const;
 const RU_DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'] as const;
 
-/** По умолчанию: воскресенье закрыто, остальные дни открыты. */
+/** Все дни открыты по умолчанию — выходных в графике больше нет. */
 const DEFAULT_OPEN: Record<number, boolean> = {
-  0: false,  // Вс
-  1: true, 2: true, 3: true, 4: true, 5: true, 6: true,
+  0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true,
 };
 
 interface DayRule {
   date: string;          // YYYY-MM-DD
   closed: boolean;
   note?: string;
-}
-
-const STORAGE_KEY = 'autolife:admin:availability';
-
-function readRules(): DayRule[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as DayRule[]) : [];
-  } catch { return []; }
-}
-
-function writeRules(rules: DayRule[]) {
-  if (typeof window === 'undefined') return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rules)); } catch { /* quota */ }
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -64,15 +47,20 @@ export default function AdminBookingCalendar({ onChange }: Props) {
 
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-  const [rules, setRules] = useState<DayRule[]>(() => readRules());
+  const [rules, setRules] = useState<DayRule[]>([]);
   const [editDate, setEditDate]   = useState<string | null>(null);
   const [editNote, setEditNote]   = useState('');
+  const [busy, setBusy] = useState(false);
 
-  // Sync on external changes (e.g. localStorage updated from another tab)
+  // Initial load from Supabase
   useEffect(() => {
-    const handler = () => setRules(readRules());
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
+    listBlockedDates().then(rows => {
+      setRules(rows.map(r => ({
+        date: r.date,
+        closed: !r.blocked_slots || r.blocked_slots.length === 0,
+        note: r.notes ?? undefined,
+      })));
+    }).catch(() => { /* tolerate empty */ });
   }, []);
 
   const rulesMap = useMemo(() => {
@@ -81,32 +69,50 @@ export default function AdminBookingCalendar({ onChange }: Props) {
     return m;
   }, [rules]);
 
-  function saveRules(next: DayRule[]) {
-    setRules(next);
-    writeRules(next);
-    onChange?.();
-  }
-
-  function toggleDay(date: string, defaultOpen: boolean) {
+  async function toggleDay(date: string) {
+    if (busy) return;
     const rule = rulesMap.get(date);
-    if (rule?.closed) {
-      // Remove manual override → back to default
-      saveRules(rules.filter(r => r.date !== date));
-    } else if (!rule && !defaultOpen) {
-      // Already closed by default — do nothing (can't override default-close via click)
-    } else {
-      // Close manually
-      saveRules([...rules.filter(r => r.date !== date), { date, closed: true }]);
+    setBusy(true);
+    try {
+      if (rule?.closed) {
+        await deleteBlockedDate(date);
+        setRules(rs => rs.filter(r => r.date !== date));
+      } else {
+        await upsertBlockedDate({ date, blocked_slots: [], notes: null });
+        setRules(rs => [...rs.filter(r => r.date !== date), { date, closed: true }]);
+      }
+      onChange?.();
+    } catch (err) {
+      console.error('[admin-calendar] toggleDay', err);
+      alert('Не удалось обновить дату. Проверьте соединение.');
+    } finally {
+      setBusy(false);
     }
   }
 
-  function saveNote() {
+  async function saveNote() {
     if (!editDate) return;
     const existing = rulesMap.get(editDate);
-    if (existing) {
-      saveRules(rules.map(r => r.date === editDate ? { ...r, note: editNote.trim() || undefined } : r));
+    if (!existing) { setEditDate(null); return; }
+    const note = editNote.trim() || null;
+    try {
+      await upsertBlockedDate({ date: editDate, blocked_slots: [], notes: note });
+      setRules(rs => rs.map(r => r.date === editDate ? { ...r, note: note ?? undefined } : r));
+    } catch (err) {
+      console.error('[admin-calendar] saveNote', err);
+      alert('Не удалось сохранить заметку.');
     }
     setEditDate(null);
+  }
+
+  async function reopenDay(date: string) {
+    try {
+      await deleteBlockedDate(date);
+      setRules(rs => rs.filter(r => r.date !== date));
+      onChange?.();
+    } catch (err) {
+      console.error('[admin-calendar] reopenDay', err);
+    }
   }
 
   /** Build the calendar grid for current month. */
@@ -157,13 +163,11 @@ export default function AdminBookingCalendar({ onChange }: Props) {
             {cells.map((d, i) => {
               if (!d) return <div key={`blank-${i}`} className="abk__blank" />;
               const date        = ymd(d);
-              const dow         = d.getDay();           // 0 = Sun
-              const defaultOpen = DEFAULT_OPEN[dow];
               const rule        = rulesMap.get(date);
               const isPast      = date < today;
               const isToday     = date === today;
-              const isClosed    = rule?.closed ?? !defaultOpen;
-              const isManual    = Boolean(rule?.closed);
+              const isClosed    = !!rule?.closed;
+              const isManual    = isClosed;
 
               return (
                 <button
@@ -172,17 +176,14 @@ export default function AdminBookingCalendar({ onChange }: Props) {
                     'abk__day',
                     isToday   ? 'is-today'          : '',
                     isPast    ? 'is-past'            : '',
-                    isClosed && isManual  ? 'is-closed-manual'  : '',
-                    isClosed && !isManual ? 'is-closed-default' : '',
-                    !isClosed ? 'is-open' : '',
+                    isClosed  ? 'is-closed-manual'  : 'is-open',
                   ].filter(Boolean).join(' ')}
-                  onClick={() => !isPast && defaultOpen && toggleDay(date, defaultOpen)}
-                  disabled={isPast || !defaultOpen}
+                  onClick={() => !isPast && toggleDay(date)}
+                  disabled={isPast || busy}
                   title={
-                    !defaultOpen          ? 'Воскресенье — выходной'      :
-                    isPast                ? 'Прошедшая дата'               :
-                    rule?.note            ? rule.note                      :
-                    isClosed              ? 'Закрыто вручную — нажмите чтобы открыть' :
+                    isPast    ? 'Прошедшая дата' :
+                    rule?.note ? rule.note :
+                    isClosed  ? 'Закрыто вручную — нажмите чтобы открыть' :
                     'Открыто — нажмите чтобы закрыть'
                   }
                 >
@@ -196,7 +197,6 @@ export default function AdminBookingCalendar({ onChange }: Props) {
           <div className="abk__legend">
             <span className="abk__leg abk__leg--open">Открыто</span>
             <span className="abk__leg abk__leg--manual">Закрыто вручную</span>
-            <span className="abk__leg abk__leg--default">Выходной (Вс)</span>
           </div>
         </div>
 
@@ -242,7 +242,7 @@ export default function AdminBookingCalendar({ onChange }: Props) {
                     )}
                     <button
                       className="abk__closed-remove"
-                      onClick={() => saveRules(rules.filter(r => r.date !== date))}
+                      onClick={() => reopenDay(date)}
                       title="Открыть этот день"
                       aria-label={`Открыть ${date}`}
                     >×</button>

@@ -5,10 +5,15 @@
 RewriteEngine On
 
 # --- Maintenance mode ----------------------------------------
-# Чтобы включить: убери # с трёх строк ниже
-# Чтобы выключить: поставь # обратно
+# ВКЛЮЧИТЬ: убери знак # с двух строк ниже (включает заглушку для всех)
+# ОТКЛЮЧИТЬ: поставь # обратно
+#
+# Для доступа админу: впиши свой IP в третью строку (узнать на 2ip.ru)
+# и убери # со всех трёх строк сразу.
+#
 #RewriteCond %{REQUEST_URI} !^/maintenance\.html$
-#RewriteCond %{REMOTE_ADDR} !^YOUR_IP_HERE$
+#RewriteCond %{REQUEST_URI} !\.(css|js|png|jpe?g|svg|webp|ico|woff2?)$
+#RewriteCond %{REMOTE_ADDR} !^123\.45\.67\.89$
 #RewriteRule ^(.*)$ /maintenance.html [R=302,L]
 
 # --- Force HTTPS ---------------------------------------------
