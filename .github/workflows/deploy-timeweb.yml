@@ -55,11 +55,12 @@ jobs:
           set net:max-retries 3
           set net:reconnect-interval-base 5
           set xfer:clobber yes
+          set cmd:fail-exit true
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
           echo "mirror --reverse --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
           echo "bye" >> /tmp/frontend.lftp
-          lftp --fail-exit -f /tmp/frontend.lftp
+          lftp -f /tmp/frontend.lftp
 
       # Deploy PHP backend → autolife.ru/public_html/
       - name: Deploy PHP backend via lftp
@@ -80,8 +81,9 @@ jobs:
           set net:max-retries 3
           set net:reconnect-interval-base 5
           set xfer:clobber yes
+          set cmd:fail-exit true
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
           echo "mirror --reverse --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
           echo "bye" >> /tmp/backend.lftp
-          lftp --fail-exit -f /tmp/backend.lftp
+          lftp -f /tmp/backend.lftp
