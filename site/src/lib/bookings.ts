@@ -59,7 +59,7 @@ export async function submitBooking(input: BookingInput): Promise<BookingRow> {
   const slotDate = input.slot_start.slice(0, 10);
   const slotTime = input.slot_start.slice(11, 16);
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('bookings')
     .insert({
       name:            input.name,
@@ -73,11 +73,18 @@ export async function submitBooking(input: BookingInput): Promise<BookingRow> {
       date:            slotDate,
       time_slot:       slotTime,
       status:          'new',
-    })
-    .select()
-    .single();
+    });
 
   if (error) throw error;
+
+  // Build a partial row from the input for the notification payload.
+  const notifyPayload = {
+    name: input.name, phone: input.phone,
+    car_brand: input.car_brand, car_model: input.car_model,
+    service: input.service, master_id: input.master_id,
+    slot_start: input.slot_start, additional_info: input.additional_info ?? null,
+    date: slotDate, time_slot: slotTime, status: 'new',
+  };
 
   // Fire-and-forget notification (Telegram + email). Don't block the
   // user on it — the booking is already saved.
@@ -87,10 +94,10 @@ export async function submitBooking(input: BookingInput): Promise<BookingRow> {
       'Content-Type': 'application/json',
       'apikey': import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(notifyPayload),
   }).catch(() => { /* notification failures don't break booking */ });
 
-  return data as BookingRow;
+  return notifyPayload as unknown as BookingRow;
 }
 
 /** Read blocked dates. Public: anon key allowed. */
