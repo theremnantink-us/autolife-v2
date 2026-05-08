@@ -57,8 +57,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://autolife.ru
   <!-- Fonts (preconnect) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- Yandex maps reviews widget — pre-warm the connection so the iframe
-       loads ~300-700ms faster once it scrolls into view. -->
+  <!-- Draco WASM decoder (used by GLB loader) -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://www.gstatic.com" />
+  <!-- Yandex -->
   <link rel="preconnect" href="https://yandex.ru" />
   <link rel="preconnect" href="https://yastatic.net" crossorigin />
   <link rel="dns-prefetch" href="https://yandex.ru" />

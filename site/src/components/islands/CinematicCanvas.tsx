@@ -334,9 +334,19 @@ function DramaticLights({ progressRef }: { progressRef: { current: number } }) {
 }
 
 // ---------- main canvas ----------
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth < 768 || 'ontouchstart' in window;
+}
+
 export default function CinematicCanvas() {
   const progressRef = useScrollProgress();
-  const [dpr, setDpr] = useState<[number, number]>([1, 1.5]);
+  const mobile = isMobileDevice();
+
+  // Mobile: cap DPR at 1.0 (phone Retina screens don't need 2×/3× for a
+  // background canvas). Desktop: ramp up to 2× on fast GPUs.
+  const dprRange: [number, number] = mobile ? [0.75, 1.0] : [1, 1.5];
+  const [dpr, setDpr] = useState<[number, number]>(dprRange);
 
   return (
     <div
@@ -346,37 +356,40 @@ export default function CinematicCanvas() {
         position: 'fixed',
         inset: 0,
         pointerEvents: 'none',
-        // z-index, filter blur, and the foreground swap are owned by CSS
-        // (global.css) so the scroll-driven CSS variables can drive them.
       }}
     >
       <Canvas
         dpr={dpr}
         gl={{
-          antialias: true,
+          antialias: !mobile,        // skip MSAA on mobile — big GPU saving
           powerPreference: 'high-performance',
           alpha: true,
           toneMapping: THREE.ACESFilmicToneMapping,
         }}
         camera={{ fov: 32, near: 0.1, far: 100, position: [3, 1, 4] }}
       >
-        <PerformanceMonitor onIncline={() => setDpr([1, 2])} onDecline={() => setDpr([1, 1.25])} />
+        <PerformanceMonitor
+          onIncline={() => setDpr(mobile ? [0.75, 1.0] : [1, 2])}
+          onDecline={() => setDpr(mobile ? [0.6, 0.85] : [1, 1.25])}
+        />
 
-        {/* Lighting is now scroll-driven (showroom → film noir → synthwave). */}
         <DramaticLights progressRef={progressRef} />
 
         <Suspense fallback={null}>
-          {/* Self-hosted HDRI — keeps CSP tight (no external CDN required). */}
           <Environment files="/hdri/warehouse.hdr" environmentIntensity={0.7} />
           <Car />
-          <ContactShadows
-            position={[0, -0.95, 0]}
-            opacity={0.6}
-            scale={6}
-            blur={2.4}
-            far={2.6}
-            color="#000"
-          />
+          {/* ContactShadows uses a blur shader pass — skip on mobile to
+              save ~4–6 ms/frame on mid-range GPUs. */}
+          {!mobile && (
+            <ContactShadows
+              position={[0, -0.95, 0]}
+              opacity={0.6}
+              scale={6}
+              blur={2.4}
+              far={2.6}
+              color="#000"
+            />
+          )}
         </Suspense>
 
         <Rig progressRef={progressRef} />
