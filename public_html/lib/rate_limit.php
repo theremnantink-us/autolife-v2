@@ -14,6 +14,7 @@ function check_rate_limit(string $endpoint, int $limit, int $window_seconds): bo
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
     $pdo = get_pdo();
+    if (!$pdo) return true; // DB unavailable — fail open, let request through
 
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) FROM rate_limits

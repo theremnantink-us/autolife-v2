@@ -60,7 +60,7 @@ cd site && npm run build        # production build
 ## Env Variables (site/.env)
 
 ```
-PUBLIC_SUPABASE_URL=https://bqvmhbxwptwuazymqwqk.supabase.co
+PUBLIC_SUPABASE_URL=https://docggsuombfvoycqxrgi.supabase.co
 PUBLIC_SUPABASE_ANON_KEY=<from Supabase Dashboard → Settings → API>
 PUBLIC_YANDEX_API_KEY=3b583c1c-bc60-4aad-b392-e3149593ef1e
 PUBLIC_YANDEX_PLACE_ID=15713727058

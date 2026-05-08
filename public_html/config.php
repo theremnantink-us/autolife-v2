@@ -17,7 +17,7 @@ define('DB_USER',       env('DB_USER'));
 define('DB_PASS',       env('DB_PASS'));
 define('TG_BOT_TOKEN',  env('TG_BOT_TOKEN'));
 define('TG_CHAT_ID',    env('TG_CHAT_ID'));
-define('CORS_ORIGIN',   env('CORS_ORIGIN', 'https://autolife-detail.ru'));
+define('CORS_ORIGIN',   env('CORS_ORIGIN', 'https://www.autolife-detail.ru'));
 define('APP_ENV',       env('APP_ENV', 'production'));
 
 function get_pdo(): ?PDO

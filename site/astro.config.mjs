@@ -8,7 +8,9 @@ const isGHPages = process.env.GITHUB_ACTIONS === 'true' && process.env.DEPLOY_TA
 export default defineConfig({
   site: isGHPages ? 'https://theremnantink-us.github.io' : 'https://autolife-detail.ru',
   base: isGHPages ? '/autolife-v2' : '/',
-  integrations: [react(), sitemap()],
+  integrations: [react(), sitemap({
+    filter: (page) => !page.includes('/admin') && !page.includes('/staff'),
+  })],
   build: { format: 'directory' },
   vite: {
     server: {

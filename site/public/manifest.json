@@ -1,23 +1,22 @@
 {
-    "name": "АвтоЛайф - Админ панель",
+    "name": "АвтоЛайф",
     "short_name": "АвтоЛайф",
-    "description": "Панель администратора автосервиса АвтоЛайф",
-    "start_url": "/admin.php",
+    "description": "Мойка, детейлинг и шиномонтаж на Рублёво-Успенском шоссе",
+    "start_url": "/",
     "display": "standalone",
-    "background_color": "#0c0c0c",
-    "theme_color": "#b22222",
+    "background_color": "#08090b",
+    "theme_color": "#08090b",
     "orientation": "any",
     "icons": [
         {
-            "src": "/icons/icon-192x192.png",
-            "sizes": "192x192",
+            "src": "/IMG/apple-touch-icon.png",
+            "sizes": "180x180",
             "type": "image/png"
         },
         {
-            "src": "/icons/icon-512x512.png",
-            "sizes": "512x512",
+            "src": "/IMG/favicon-32x32.png",
+            "sizes": "32x32",
             "type": "image/png"
         }
-    ],
-    "gcm_sender_id": "103953800507"
+    ]
 }
