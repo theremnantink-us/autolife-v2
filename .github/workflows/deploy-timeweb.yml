@@ -51,16 +51,18 @@ jobs:
           set ftp:passive-mode yes
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
-          set net:timeout 300
-          set net:max-retries 3
+          set ftp:use-mdtm no
+          set net:timeout 60
+          set net:idle-timeout 30
+          set net:max-retries 5
           set net:reconnect-interval-base 5
+          set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
-          set cmd:fail-exit true
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=2 --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
           echo "bye" >> /tmp/frontend.lftp
-          lftp -f /tmp/frontend.lftp
+          timeout 840 lftp -f /tmp/frontend.lftp
 
       # Deploy PHP backend → autolife.ru/public_html/
       - name: Deploy PHP backend via lftp
@@ -77,13 +79,15 @@ jobs:
           set ftp:passive-mode yes
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
-          set net:timeout 120
-          set net:max-retries 3
+          set ftp:use-mdtm no
+          set net:timeout 60
+          set net:idle-timeout 30
+          set net:max-retries 5
           set net:reconnect-interval-base 5
+          set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
-          set cmd:fail-exit true
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=2 --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
           echo "bye" >> /tmp/backend.lftp
-          lftp -f /tmp/backend.lftp
+          timeout 240 lftp -f /tmp/backend.lftp
