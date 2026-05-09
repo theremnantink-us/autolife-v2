@@ -1,3 +1,4 @@
+# Redeploy trigger: 2026-05-08 — Supabase anon key updated
 name: Deploy to TimeWeb
 
 on:
