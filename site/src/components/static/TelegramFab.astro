@@ -22,16 +22,15 @@ const TOOLTIP = "Чат с AutoLife";
   aria-label={TOOLTIP}
   data-tooltip={TOOLTIP}
 >
-  <picture class="tg-fab__avatar">
-    <source srcset="/IMG/bot-avatar.webp" type="image/webp" />
-    <!-- Inline SVG fallback: Telegram paper-plane glyph -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        fill="currentColor"
-        d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19l-9.49 5.99-4.1-1.28c-.88-.26-.89-.87.2-1.3l16-6.17c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.06-1.99 1.93c-.23.23-.42.42-.85.42z"
-      />
-    </svg>
-  </picture>
+  <img
+    class="tg-fab__avatar"
+    src="/IMG/bot-avatar.webp"
+    alt="AutoLife"
+    width="60"
+    height="60"
+    loading="eager"
+    decoding="async"
+  />
   <span class="tg-fab__pulse" aria-hidden="true"></span>
 </a>
 
@@ -83,20 +82,12 @@ const TOOLTIP = "Чат с AutoLife";
 
   .tg-fab__avatar {
     display: block;
-    width: 60%;
-    height: 60%;
-    border-radius: 50%;
-    overflow: hidden;
-    color: var(--accent, #c4a882);
-  }
-
-  .tg-fab__avatar img,
-  .tg-fab__avatar svg {
     width: 100%;
     height: 100%;
+    border-radius: 50%;
     object-fit: cover;
-    object-position: center top;
-    display: block;
+    object-position: center 20%;
+    background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
   }
 
   /* Subtle attention pulse — disabled for users who prefer reduced motion */
