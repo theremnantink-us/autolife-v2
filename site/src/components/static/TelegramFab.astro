@@ -1,0 +1,180 @@
+---
+/**
+ * TelegramFab — floating action button in the bottom-right corner.
+ * Click opens the AutoLife Telegram bot (@AutoLifeManagerbot).
+ *
+ * Drop it into Base.astro before </body> so it overlays every page.
+ *
+ * Optional avatar: place an image at /IMG/bot-avatar.webp (preferably
+ * 128×128 round-ready). If missing, the button falls back to the
+ * official Telegram glyph.
+ */
+
+const BOT_URL = "https://t.me/AutoLifeManagerbot";
+const TOOLTIP = "Чат с AutoLife";
+---
+
+<a
+  href={BOT_URL}
+  target="_blank"
+  rel="noopener"
+  class="tg-fab"
+  aria-label={TOOLTIP}
+  data-tooltip={TOOLTIP}
+>
+  <picture class="tg-fab__avatar">
+    <source srcset="/IMG/bot-avatar.webp" type="image/webp" />
+    <!-- Inline SVG fallback: Telegram paper-plane glyph -->
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19l-9.49 5.99-4.1-1.28c-.88-.26-.89-.87.2-1.3l16-6.17c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.06-1.99 1.93c-.23.23-.42.42-.85.42z"
+      />
+    </svg>
+  </picture>
+  <span class="tg-fab__pulse" aria-hidden="true"></span>
+</a>
+
+<style is:global>
+  .tg-fab {
+    position: fixed;
+    right: clamp(16px, 4vw, 28px);
+    bottom: clamp(16px, 4vw, 28px);
+    bottom: max(clamp(16px, 4vw, 28px), env(safe-area-inset-bottom));
+    z-index: 80;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+
+    color: var(--text, #e8e3dc);
+    background:
+      radial-gradient(circle at 30% 30%, #2a2a2a 0%, #0f0f0f 65%) padding-box,
+      linear-gradient(135deg, var(--accent, #c4a882), #6a5436) border-box;
+    border: 1.5px solid transparent;
+
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.6),
+      inset 0 0 0 1px rgba(196, 168, 130, 0.18);
+
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tg-fab:hover,
+  .tg-fab:focus-visible {
+    transform: translateY(-2px) scale(1.06);
+    box-shadow:
+      0 14px 32px rgba(0, 0, 0, 0.55),
+      0 3px 8px rgba(0, 0, 0, 0.7),
+      0 0 0 4px rgba(196, 168, 130, 0.12);
+    outline: none;
+  }
+
+  .tg-fab:active {
+    transform: scale(0.96);
+  }
+
+  .tg-fab__avatar {
+    display: block;
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    overflow: hidden;
+    color: var(--accent, #c4a882);
+  }
+
+  .tg-fab__avatar img,
+  .tg-fab__avatar svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+
+  /* Subtle attention pulse — disabled for users who prefer reduced motion */
+  .tg-fab__pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--accent, #c4a882);
+    opacity: 0;
+    pointer-events: none;
+    animation: tg-fab-pulse 2.6s ease-out infinite;
+  }
+
+  @keyframes tg-fab-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    70% {
+      transform: scale(1.45);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1.45);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tg-fab__pulse {
+      animation: none;
+    }
+    .tg-fab {
+      transition: none;
+    }
+  }
+
+  /* Tooltip on desktop only */
+  @media (hover: hover) and (min-width: 720px) {
+    .tg-fab::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      right: calc(100% + 12px);
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 8px 14px;
+      background: rgba(15, 15, 15, 0.95);
+      color: var(--text, #e8e3dc);
+      border: 1px solid rgba(196, 168, 130, 0.25);
+      border-radius: 8px;
+      font:
+        500 14px/1 "Inter",
+        system-ui,
+        sans-serif;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .tg-fab:hover::before,
+    .tg-fab:focus-visible::before {
+      opacity: 1;
+    }
+  }
+
+  /* Mobile: slightly smaller so it doesn't dominate the screen */
+  @media (max-width: 480px) {
+    .tg-fab {
+      width: 54px;
+      height: 54px;
+    }
+  }
+
+  /* Hide on print */
+  @media print {
+    .tg-fab {
+      display: none;
+    }
+  }
+</style>
