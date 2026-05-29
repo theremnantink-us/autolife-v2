@@ -71,12 +71,34 @@ export default function HeroBackdrop() {
   const [enabled,  setEnabled]  = useState(false);
   const [progress, setProgress] = useState(0);
   const [done,     setDone]     = useState(false);
+  // Skip the loading overlay when the visitor lands straight on the booking
+  // form (e.g. ad / Telegram links with #booking). The 3D still streams in the
+  // background, but the form is usable instantly — no waiting on the model.
+  const [skipLoader] = useState(
+    () => typeof window !== 'undefined' && window.location.hash === '#booking',
+  );
 
   useEffect(() => {
     if (!detect3D()) return;
     preloadAssets();
     setEnabled(true);
   }, []);
+
+  // When arriving on #booking, jump to the form immediately. Lenis smooth
+  // scroll can swallow the native anchor jump, so drive it explicitly.
+  useEffect(() => {
+    if (!skipLoader) return;
+    const go = () => {
+      const el = document.getElementById('booking');
+      if (!el) return;
+      const lenis = (window as any).__lenis;
+      if (lenis?.scrollTo) lenis.scrollTo(el, { immediate: true });
+      else el.scrollIntoView();
+    };
+    // Wait a tick for the form island to hydrate into the DOM.
+    const t = setTimeout(go, 60);
+    return () => clearTimeout(t);
+  }, [skipLoader]);
 
   if (!enabled) {
     return (
@@ -96,7 +118,7 @@ export default function HeroBackdrop() {
 
   return (
     <>
-      <LoadingScreen progress={progress} done={done} />
+      {!skipLoader && <LoadingScreen progress={progress} done={done} />}
       <Suspense fallback={null}>
         <ProgressBridge onProgress={setProgress} onDone={() => setDone(true)} />
         <BackgroundPaths />
