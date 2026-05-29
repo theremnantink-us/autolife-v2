@@ -308,7 +308,7 @@ export default function BookingForm() {
               hasError={!!errors.date}
             />
             <small className="bf-field__hint">
-              Часовые слоты, пн–пт 8:00–22:00, сб–вс 9:00–21:00.
+              Часовые слоты, пн–пт 8:00–21:00, сб–вс 9:00–21:00.
             </small>
             {errors.date && <small className="bf-field__error">{errors.date}</small>}
           </div>

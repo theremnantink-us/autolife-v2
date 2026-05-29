@@ -2,7 +2,7 @@
  * BookingCalendar — custom hour-slot calendar for the booking form.
  *
  * Schedule:
- *   • Mon–Fri 8–22
+ *   • Mon–Fri 8–21
  *   • Sat–Sun 9–21
  *   • busyDates passed in → mark whole day grey
  *   • Past time on the current day → disabled
@@ -29,11 +29,11 @@ const RU_MONTH = [
 /** Working hours per ISO weekday (0 = Sun … 6 = Sat). */
 const HOURS: Record<number, { start: number; end: number } | null> = {
   0: { start: 9, end: 21 },        // Sun
-  1: { start: 8, end: 22 },        // Mon
-  2: { start: 8, end: 22 },
-  3: { start: 8, end: 22 },
-  4: { start: 8, end: 22 },
-  5: { start: 8, end: 22 },        // Fri
+  1: { start: 8, end: 21 },        // Mon
+  2: { start: 8, end: 21 },
+  3: { start: 8, end: 21 },
+  4: { start: 8, end: 21 },
+  5: { start: 8, end: 21 },        // Fri
   6: { start: 9, end: 21 },        // Sat
 };
 
