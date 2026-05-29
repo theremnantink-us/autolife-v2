@@ -54,7 +54,7 @@ jobs:
           set ftp:use-mlsd no
           set ftp:use-mdtm no
           set net:timeout 60
-          set net:idle-timeout 30
+          set net:idle 30
           set net:max-retries 5
           set net:reconnect-interval-base 5
           set net:reconnect-interval-multiplier 1
@@ -82,7 +82,7 @@ jobs:
           set ftp:use-mlsd no
           set ftp:use-mdtm no
           set net:timeout 60
-          set net:idle-timeout 30
+          set net:idle 30
           set net:max-retries 5
           set net:reconnect-interval-base 5
           set net:reconnect-interval-multiplier 1
