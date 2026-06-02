@@ -195,9 +195,9 @@ export const employees: Employee[] = [
   {
     id: 'roman',
     slug: 'roman',
-    name: 'Роман',
+    name: 'Герман',
     role: 'master',
-    position: 'Мастер по уходу',
+    position: 'Мастер-детейлер',
     description:
       'Сильная сторона — химчистка салона и удаление запахов. Работает с тканевой обивкой и потолком без разводов.',
     photo: '/IMG/staff/roman.svg',
@@ -208,7 +208,7 @@ export const employees: Employee[] = [
       {
         author: 'Екатерина',
         rating: 5,
-        text: 'Покупала машину после курильщика — Роман убрал запах за один заход.',
+        text: 'Покупала машину после курильщика — Герман убрал запах за один заход.',
         date: '2025-08-30',
         source: 'yandex',
       },
