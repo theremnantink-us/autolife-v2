@@ -196,6 +196,31 @@ export default function AdminApp() {
       {tab === 'salaries'   && <PayrollPanel    tick={tick} onChange={refresh} />}
       {tab === 'deductions' && <DeductionsPanel tick={tick} onChange={refresh} />}
 
+      {/* Mobile app-style bottom navigation */}
+      <nav className="aap__bottomnav" role="tablist" aria-label="Разделы">
+        {([
+          ['dashboard',  '📊', 'Статистика'],
+          ['bookings',   '📋', 'Записи'],
+          ['calendar',   '📅', 'Календарь'],
+          ['gallery',    '🖼', 'Галерея'],
+          ['stories',    '✨', 'Истории'],
+          ['journal',    '📓', 'Журнал'],
+          ['salaries',   '💰', 'Зарплаты'],
+          ['deductions', '➖', 'Удержания'],
+        ] as const).map(([id, icon, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            className={`aap__bn${tab === id ? ' is-active' : ''}`}
+            onClick={() => setTab(id as Tab)}
+          >
+            <span className="aap__bn-ic" aria-hidden="true">{icon}</span>
+            <span className="aap__bn-lb">{label}</span>
+          </button>
+        ))}
+      </nav>
+
       {toast && (
         <div className="aap-toast" role="status" aria-live="polite" onClick={() => { setToast(null); setTab('bookings'); }}>
           <strong>🔔 {toast}</strong>
@@ -472,6 +497,37 @@ function Style() {
       color: var(--aap-dim); border: 1px solid var(--aap-border);
       background: rgba(8,9,11,0.45);
       backdrop-filter: blur(8px);
+    }
+
+    /* ─── Mobile app-style bottom navigation ───────────────────────────
+       Hidden on desktop; on phones the top tab pills are replaced by a
+       fixed bottom bar with large touch targets, like a native app. */
+    .aap__bottomnav { display: none; }
+    @media (max-width: 767px) {
+      .aap__tabs, .aap__tabs-group { display: none !important; }
+      .aap { padding-bottom: 86px; }
+      .aap__head { margin-bottom: var(--space-3); gap: var(--space-3); }
+      .aap__title { font-size: 22px; }
+      .aap__bottomnav {
+        display: flex; gap: 2px; overflow-x: auto;
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+        padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+        background: rgba(10,12,16,0.92);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        border-top: 1px solid var(--aap-border);
+        scrollbar-width: none;
+      }
+      .aap__bottomnav::-webkit-scrollbar { display: none; }
+      .aap__bn {
+        flex: 1 0 auto; min-width: 60px;
+        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        padding: 6px 6px; border-radius: 12px; background: transparent; border: 0;
+        color: var(--aap-dim); cursor: pointer;
+      }
+      .aap__bn-ic { font-size: 20px; line-height: 1; }
+      .aap__bn-lb { font-size: 10px; letter-spacing: 0.01em; white-space: nowrap; }
+      .aap__bn.is-active { color: var(--text); background: rgba(255,255,255,0.08); }
     }
 
     .aap__panel { display: flex; flex-direction: column; gap: var(--space-5); }
