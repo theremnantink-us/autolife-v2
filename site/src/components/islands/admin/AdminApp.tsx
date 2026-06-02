@@ -37,8 +37,12 @@ import AnalyticsPanel from './AnalyticsPanel';
 
 type Tab = 'dashboard' | 'analytics' | 'bookings' | 'calendar' | 'gallery' | 'stories' | 'journal' | 'salaries' | 'deductions';
 
+/** Tabs that live behind the mobile «Ещё» sheet (not on the bottom bar). */
+const MORE_TABS: Tab[] = ['gallery', 'stories', 'journal', 'salaries', 'deductions'];
+
 export default function AdminApp() {
   const [tab, setTab]         = useState<Tab>('dashboard');
+  const [moreOpen, setMoreOpen] = useState(false);
   const [tick, setTick]       = useState(0);
   const [authReady, setAuthReady] = useState(false);
   const [authed, setAuthed]   = useState(false);
@@ -199,31 +203,67 @@ export default function AdminApp() {
       {tab === 'salaries'   && <PayrollPanel    tick={tick} onChange={refresh} />}
       {tab === 'deductions' && <DeductionsPanel tick={tick} onChange={refresh} />}
 
-      {/* Mobile app-style bottom navigation */}
+      {/* Mobile app-style bottom navigation: 4 primary tabs + «Ещё» sheet */}
       <nav className="aap__bottomnav" role="tablist" aria-label="Разделы">
         {([
-          ['dashboard',  '📊', 'Статистика'],
-          ['analytics',  '📈', 'Аналитика'],
-          ['bookings',   '📋', 'Записи'],
-          ['calendar',   '📅', 'Календарь'],
-          ['gallery',    '🖼', 'Галерея'],
-          ['stories',    '✨', 'Истории'],
-          ['journal',    '📓', 'Журнал'],
-          ['salaries',   '💰', 'Зарплаты'],
-          ['deductions', '➖', 'Удержания'],
+          ['dashboard', '📊', 'Статистика'],
+          ['bookings',  '📋', 'Записи'],
+          ['calendar',  '📅', 'Календарь'],
+          ['analytics', '📈', 'Аналитика'],
         ] as const).map(([id, icon, label]) => (
           <button
             key={id}
             role="tab"
             aria-selected={tab === id}
             className={`aap__bn${tab === id ? ' is-active' : ''}`}
-            onClick={() => setTab(id as Tab)}
+            onClick={() => { setTab(id as Tab); setMoreOpen(false); }}
           >
             <span className="aap__bn-ic" aria-hidden="true">{icon}</span>
             <span className="aap__bn-lb">{label}</span>
           </button>
         ))}
+        <button
+          type="button"
+          className={`aap__bn${MORE_TABS.includes(tab) || moreOpen ? ' is-active' : ''}`}
+          aria-expanded={moreOpen}
+          onClick={() => setMoreOpen(o => !o)}
+        >
+          <span className="aap__bn-ic" aria-hidden="true">⋯</span>
+          <span className="aap__bn-lb">Ещё</span>
+        </button>
       </nav>
+
+      {/* «Ещё» bottom sheet — every section, reachable in one tap */}
+      {moreOpen && (
+        <div className="aap__sheet" role="dialog" aria-modal="true" aria-label="Все разделы">
+          <div className="aap__sheet-back" onClick={() => setMoreOpen(false)} />
+          <div className="aap__sheet-panel">
+            <div className="aap__sheet-grip" />
+            <div className="aap__sheet-grid">
+              {([
+                ['dashboard',  '📊', 'Статистика'],
+                ['analytics',  '📈', 'Аналитика'],
+                ['bookings',   '📋', 'Записи'],
+                ['calendar',   '📅', 'Календарь'],
+                ['gallery',    '🖼', 'Галерея'],
+                ['stories',    '✨', 'Истории'],
+                ['journal',    '📓', 'Журнал'],
+                ['salaries',   '💰', 'Зарплаты'],
+                ['deductions', '➖', 'Удержания'],
+              ] as const).map(([id, icon, label]) => (
+                <button
+                  key={id}
+                  className={`aap__sheet-item${tab === id ? ' is-active' : ''}`}
+                  onClick={() => { setTab(id as Tab); setMoreOpen(false); }}
+                >
+                  <span className="aap__sheet-ic" aria-hidden="true">{icon}</span>
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="aap-toast" role="status" aria-live="polite" onClick={() => { setToast(null); setTab('bookings'); }}>
@@ -513,25 +553,46 @@ function Style() {
       .aap__head { margin-bottom: var(--space-3); gap: var(--space-3); }
       .aap__title { font-size: 22px; }
       .aap__bottomnav {
-        display: flex; gap: 2px; overflow-x: auto;
+        display: flex; gap: 2px;
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-        padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
-        background: rgba(10,12,16,0.92);
+        padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+        background: rgba(10,12,16,0.94);
         backdrop-filter: blur(16px) saturate(140%);
         -webkit-backdrop-filter: blur(16px) saturate(140%);
         border-top: 1px solid var(--aap-border);
-        scrollbar-width: none;
       }
-      .aap__bottomnav::-webkit-scrollbar { display: none; }
+      /* 5 equal-width targets — always fit the screen, no horizontal scroll. */
       .aap__bn {
-        flex: 1 0 auto; min-width: 60px;
+        flex: 1 1 0; min-width: 0;
         display: flex; flex-direction: column; align-items: center; gap: 3px;
-        padding: 6px 6px; border-radius: 12px; background: transparent; border: 0;
+        padding: 6px 2px; border-radius: 12px; background: transparent; border: 0;
         color: var(--aap-dim); cursor: pointer;
       }
       .aap__bn-ic { font-size: 20px; line-height: 1; }
-      .aap__bn-lb { font-size: 10px; letter-spacing: 0.01em; white-space: nowrap; }
+      .aap__bn-lb { font-size: 10px; letter-spacing: 0; white-space: nowrap; }
       .aap__bn.is-active { color: var(--text); background: rgba(255,255,255,0.08); }
+
+      /* «Ещё» bottom sheet */
+      .aap__sheet { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; justify-content: flex-end; }
+      .aap__sheet-back { position: absolute; inset: 0; background: rgba(5,6,8,0.6); backdrop-filter: blur(3px); }
+      .aap__sheet-panel {
+        position: relative; z-index: 1;
+        background: #0e1013; border-top: 1px solid var(--aap-border);
+        border-radius: 18px 18px 0 0;
+        padding: 10px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+        animation: aap-sheet-up 0.22s var(--ease-out, ease);
+      }
+      @keyframes aap-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .aap__sheet-grip { width: 40px; height: 4px; border-radius: 999px; background: rgba(255,255,255,0.2); margin: 4px auto 14px; }
+      .aap__sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .aap__sheet-item {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        padding: 14px 6px; border-radius: 14px; cursor: pointer;
+        background: var(--bg-elev, rgba(255,255,255,0.03)); border: 1px solid var(--aap-border);
+        color: var(--text); font-size: 12px;
+      }
+      .aap__sheet-ic { font-size: 22px; line-height: 1; }
+      .aap__sheet-item.is-active { border-color: var(--chrome-2, rgba(232,234,237,0.45)); background: rgba(255,255,255,0.07); }
     }
 
     .aap__panel { display: flex; flex-direction: column; gap: var(--space-5); }
