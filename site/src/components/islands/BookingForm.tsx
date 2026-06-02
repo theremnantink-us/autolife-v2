@@ -288,15 +288,16 @@ export default function BookingForm() {
           </div>
 
           {form.service === OTHER_SERVICE && (
-            <div className="bf-field">
+            <div className="bf-field bf-field--other">
               <label className="bf-field__label" htmlFor="bf-service-other">Опишите услугу *</label>
               <input
                 id="bf-service-other"
-                className={`bf-field__input${errors.serviceOther ? ' has-error' : ''}`}
+                className={`bf-field__input bf-field__input--other${errors.serviceOther ? ' has-error' : ''}`}
                 value={form.serviceOther}
                 onChange={e => set('serviceOther', e.target.value)}
                 maxLength={120}
                 placeholder="Например: химчистка багажника"
+                autoFocus
               />
               {errors.serviceOther && <small className="bf-field__error">{errors.serviceOther}</small>}
             </div>
@@ -509,6 +510,30 @@ export default function BookingForm() {
           background: var(--bg-elev);
         }
         .bf-field__input.has-error { border-color: var(--danger); }
+
+        /* Highlighted free-text field shown for «Другая услуга» — accented
+           so the user clearly sees they need to fill it in. */
+        .bf-field--other {
+          padding: 12px 14px;
+          margin-top: -6px;
+          border-radius: var(--r-md);
+          background: rgba(124, 196, 255, 0.06);
+          border: 1px solid rgba(124, 196, 255, 0.35);
+          animation: bfOtherIn var(--dur-fast) var(--ease-out);
+        }
+        .bf-field--other .bf-field__label { color: #7cc4ff; }
+        .bf-field__input--other {
+          border-color: rgba(124, 196, 255, 0.55);
+          background: rgba(124, 196, 255, 0.04);
+        }
+        .bf-field__input--other:focus {
+          border-color: #7cc4ff;
+          box-shadow: 0 0 0 3px rgba(124, 196, 255, 0.18);
+        }
+        @keyframes bfOtherIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
         .bf-field__hint  { color: var(--text-dim); font-size: 12px; }
         .bf-field__error { color: var(--danger); font-size: 12px; }
 
