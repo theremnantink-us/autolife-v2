@@ -22,6 +22,7 @@ import { carBrands, modelsForBrand } from '../../data/cars';
 import { submitBooking, listClosedDays } from '../../lib/bookings';
 
 const MASTER_ANY = '';   // sentinel: «любой свободный»
+const OTHER_SERVICE = '__other__';   // sentinel: «другая услуга» → free-text input
 
 const SERVICE_GROUPS = [
   {
@@ -29,6 +30,7 @@ const SERVICE_GROUPS = [
     options: [
       'Детейлинг мойка',
       'Деконтаминация кузова (глубокая очистка ЛКП)',
+      'Детейлинг подвески',
       'Мойка двигателя с консервацией',
       'Полировка кузова',
       'Химчистка кожаных элементов',
@@ -58,6 +60,7 @@ interface FormState {
   carBrand: string;
   carModel: string;
   service: string;
+  serviceOther: string;  // free-text when service === OTHER_SERVICE
   master: string;        // employee id, '' = «любой свободный»
   date: string;          // 'YYYY-MM-DD HH:mm'
   additionalInfo: string;
@@ -67,7 +70,7 @@ type Errors = Partial<Record<keyof FormState, string>>;
 
 const EMPTY: FormState = {
   name: '', phone: '', carBrand: '', carModel: '',
-  service: '', master: MASTER_ANY, date: '', additionalInfo: '', website: '',
+  service: '', serviceOther: '', master: MASTER_ANY, date: '', additionalInfo: '', website: '',
 };
 
 function sanitizeText(s: string, max = 500): string {
@@ -100,6 +103,8 @@ function validate(s: FormState): Errors {
   if (s.carBrand.trim().length < 1)         e.carBrand = 'Укажите марку';
   if (s.carModel.trim().length < 1)         e.carModel = 'Укажите модель';
   if (!s.service)                            e.service = 'Выберите услугу';
+  else if (s.service === OTHER_SERVICE && s.serviceOther.trim().length < 2)
+    e.serviceOther = 'Опишите услугу';
   if (!s.date)                               e.date = 'Выберите дату и время';
   return e;
 }
@@ -178,17 +183,18 @@ export default function BookingForm() {
     try {
       // form.date format: 'YYYY-MM-DD HH:mm' → ISO with Moscow offset
       const slotIso = form.date.replace(' ', 'T') + ':00+03:00';
+      const serviceValue = form.service === OTHER_SERVICE ? form.serviceOther : form.service;
       await submitBooking({
         name:            sanitizeText(form.name, 80),
         phone:           sanitizeText(form.phone, 24),
         car_brand:       sanitizeText(form.carBrand, 40),
         car_model:       sanitizeText(form.carModel, 40),
-        service:         sanitizeText(form.service, 120),
+        service:         sanitizeText(serviceValue, 120),
         master_id:       form.master ? sanitizeText(form.master, 40) : null,
         slot_start:      slotIso,
         additional_info: sanitizeText(form.additionalInfo, 1000),
       });
-      setSuccess(form);
+      setSuccess({ ...form, service: serviceValue });
       setForm(EMPTY);
     } catch (err: any) {
       setServerErr(err?.message ?? 'Не удалось отправить заявку');
@@ -276,9 +282,25 @@ export default function BookingForm() {
                   {g.options.map(o => <option key={o} value={o}>{o}</option>)}
                 </optgroup>
               ))}
+              <option value={OTHER_SERVICE}>Другая услуга</option>
             </select>
             {errors.service && <small className="bf-field__error">{errors.service}</small>}
           </div>
+
+          {form.service === OTHER_SERVICE && (
+            <div className="bf-field">
+              <label className="bf-field__label" htmlFor="bf-service-other">Опишите услугу *</label>
+              <input
+                id="bf-service-other"
+                className={`bf-field__input${errors.serviceOther ? ' has-error' : ''}`}
+                value={form.serviceOther}
+                onChange={e => set('serviceOther', e.target.value)}
+                maxLength={120}
+                placeholder="Например: химчистка багажника"
+              />
+              {errors.serviceOther && <small className="bf-field__error">{errors.serviceOther}</small>}
+            </div>
+          )}
 
           <div className="bf-field">
             <label className="bf-field__label" htmlFor="bf-master">Мастер</label>
