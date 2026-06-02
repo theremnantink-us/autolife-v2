@@ -33,8 +33,9 @@ import AdminLogin from './AdminLogin';
 import AdminBookingCalendar from './AdminBookingCalendar';
 import GalleryPanel from './GalleryPanel';
 import StoriesPanel from './StoriesPanel';
+import AnalyticsPanel from './AnalyticsPanel';
 
-type Tab = 'dashboard' | 'bookings' | 'calendar' | 'gallery' | 'stories' | 'journal' | 'salaries' | 'deductions';
+type Tab = 'dashboard' | 'analytics' | 'bookings' | 'calendar' | 'gallery' | 'stories' | 'journal' | 'salaries' | 'deductions';
 
 export default function AdminApp() {
   const [tab, setTab]         = useState<Tab>('dashboard');
@@ -147,6 +148,7 @@ export default function AdminApp() {
         <nav className="aap__tabs" role="tablist">
           {([
             ['dashboard', 'Статистика'],
+            ['analytics', 'Аналитика'],
             ['bookings',  'Записи'],
             ['calendar',  'Календарь'],
             ['gallery',   'Галерея'],
@@ -188,6 +190,7 @@ export default function AdminApp() {
       </header>
 
       {tab === 'dashboard' && <Dashboard apps={apps} deductions={deductions} />}
+      {tab === 'analytics' && <AnalyticsPanel />}
       {tab === 'bookings'  && <Bookings  apps={apps} onChange={refresh} />}
       {tab === 'calendar'  && <AdminBookingCalendar onChange={refresh} />}
       {tab === 'gallery'   && <GalleryPanel />}
@@ -200,6 +203,7 @@ export default function AdminApp() {
       <nav className="aap__bottomnav" role="tablist" aria-label="Разделы">
         {([
           ['dashboard',  '📊', 'Статистика'],
+          ['analytics',  '📈', 'Аналитика'],
           ['bookings',   '📋', 'Записи'],
           ['calendar',   '📅', 'Календарь'],
           ['gallery',    '🖼', 'Галерея'],

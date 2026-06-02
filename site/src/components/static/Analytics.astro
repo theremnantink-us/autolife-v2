@@ -1,0 +1,43 @@
+---
+/**
+ * Analytics — Yandex Metrika + Google Analytics (GA4) loaders.
+ *
+ * Both are opt-in: the scripts only render when the corresponding env var
+ * is set at build time, so the site stays clean until the IDs are added.
+ *   PUBLIC_YANDEX_METRIKA_ID  — Метрика counter id (digits)
+ *   PUBLIC_GA_ID              — GA4 measurement id (G-XXXXXXXXXX)
+ */
+const METRIKA_ID = import.meta.env.PUBLIC_YANDEX_METRIKA_ID ?? '';
+const GA_ID      = import.meta.env.PUBLIC_GA_ID ?? '';
+---
+{METRIKA_ID && (
+  <>
+    <script type="text/javascript" is:inline define:vars={{ METRIKA_ID }}>
+      (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+      m[i].l=1*new Date();
+      for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+      k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+      ym(Number(METRIKA_ID), "init", {
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true,
+        webvisor: true
+      });
+    </script>
+    <noscript><div><img src={`https://mc.yandex.ru/watch/${METRIKA_ID}`} style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+  </>
+)}
+
+{GA_ID && (
+  <>
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} is:inline></script>
+    <script is:inline define:vars={{ GA_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+    </script>
+  </>
+)}
