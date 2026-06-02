@@ -32,8 +32,9 @@ import DeductionsPanel from './DeductionsPanel';
 import AdminLogin from './AdminLogin';
 import AdminBookingCalendar from './AdminBookingCalendar';
 import GalleryPanel from './GalleryPanel';
+import StoriesPanel from './StoriesPanel';
 
-type Tab = 'dashboard' | 'bookings' | 'calendar' | 'gallery' | 'journal' | 'salaries' | 'deductions';
+type Tab = 'dashboard' | 'bookings' | 'calendar' | 'gallery' | 'stories' | 'journal' | 'salaries' | 'deductions';
 
 export default function AdminApp() {
   const [tab, setTab]         = useState<Tab>('dashboard');
@@ -149,6 +150,7 @@ export default function AdminApp() {
             ['bookings',  'Записи'],
             ['calendar',  'Календарь'],
             ['gallery',   'Галерея'],
+            ['stories',   'Истории'],
           ] as const).map(([id, label]) => (
             <button
               key={id}
@@ -189,6 +191,7 @@ export default function AdminApp() {
       {tab === 'bookings'  && <Bookings  apps={apps} onChange={refresh} />}
       {tab === 'calendar'  && <AdminBookingCalendar onChange={refresh} />}
       {tab === 'gallery'   && <GalleryPanel />}
+      {tab === 'stories'   && <StoriesPanel />}
       {tab === 'journal'   && <Journal   tick={tick} onChange={refresh} />}
       {tab === 'salaries'   && <PayrollPanel    tick={tick} onChange={refresh} />}
       {tab === 'deductions' && <DeductionsPanel tick={tick} onChange={refresh} />}

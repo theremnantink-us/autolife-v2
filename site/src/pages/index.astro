@@ -10,6 +10,7 @@ import Employees from '../components/static/Employees.astro';
 import Gallery from '../components/static/Gallery.astro';
 import PricingTeaser from '../components/static/PricingTeaser.astro';
 import HeroBackdrop from '../components/islands/HeroBackdrop';
+import StoriesBar from '../components/islands/StoriesBar';
 import Reviews from '../components/islands/Reviews';
 import BookingForm from '../components/islands/BookingForm';
 import Contacts from '../components/static/Contacts.astro';
@@ -31,6 +32,13 @@ const YANDEX_PLACE_ID = import.meta.env.PUBLIC_YANDEX_PLACE_ID ?? '15713727058';
   <HeroBackdrop client:only="react" />
 
   <Hero />
+
+  <section class="stories-section" aria-label="Истории и акции">
+    <div class="container">
+      <StoriesBar client:visible />
+    </div>
+  </section>
+
   <div class="reveal-gap" aria-hidden="true"></div>
 
   <Services />
@@ -69,6 +77,12 @@ const YANDEX_PLACE_ID = import.meta.env.PUBLIC_YANDEX_PLACE_ID ?? '15713727058';
     position: relative;
     z-index: 1;
     height: 60vh;
+  }
+  /* Stories strip — sits above the cinematic backdrop, opaque enough to read. */
+  .stories-section {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-5);
   }
   @media (max-width: 767px) {
     /* On mobile we trade some 3D breathing room for shorter scroll length. */
