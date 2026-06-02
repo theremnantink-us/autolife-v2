@@ -7,8 +7,10 @@
  *   PUBLIC_YANDEX_METRIKA_ID  — Метрика counter id (digits)
  *   PUBLIC_GA_ID              — GA4 measurement id (G-XXXXXXXXXX)
  */
-const METRIKA_ID = import.meta.env.PUBLIC_YANDEX_METRIKA_ID ?? '';
-const GA_ID      = import.meta.env.PUBLIC_GA_ID ?? '';
+// Analytics IDs are public by nature (exposed in client tracking code), so
+// we keep known production values as fallbacks. Env vars still take priority.
+const METRIKA_ID = import.meta.env.PUBLIC_YANDEX_METRIKA_ID ?? '94597708';
+const GA_ID      = import.meta.env.PUBLIC_GA_ID ?? 'G-BBX9E30FLS';
 ---
 {METRIKA_ID && (
   <>
