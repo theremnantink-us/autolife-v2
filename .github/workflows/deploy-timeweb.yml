@@ -55,17 +55,22 @@ jobs:
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
           set ftp:use-mdtm no
-          set net:timeout 60
-          set net:idle 30
-          set net:max-retries 5
-          set net:reconnect-interval-base 5
+          set ftp:use-feat no
+          set net:timeout 90
+          set net:idle 60
+          set net:max-retries 10
+          set net:reconnect-interval-base 10
           set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=2 --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
           echo "bye" >> /tmp/frontend.lftp
-          timeout 840 lftp -f /tmp/frontend.lftp
+          for attempt in 1 2 3; do
+            echo "=== lftp attempt $attempt ==="
+            timeout 840 lftp -f /tmp/frontend.lftp && break
+            [ $attempt -lt 3 ] && sleep 15
+          done
 
       # Deploy PHP backend → autolife.ru/public_html/
       - name: Deploy PHP backend via lftp
@@ -83,14 +88,19 @@ jobs:
           set ftp:use-site-chmod no
           set ftp:use-mlsd no
           set ftp:use-mdtm no
-          set net:timeout 60
-          set net:idle 30
-          set net:max-retries 5
-          set net:reconnect-interval-base 5
+          set ftp:use-feat no
+          set net:timeout 90
+          set net:idle 60
+          set net:max-retries 10
+          set net:reconnect-interval-base 10
           set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=2 --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
           echo "bye" >> /tmp/backend.lftp
-          timeout 240 lftp -f /tmp/backend.lftp
+          for attempt in 1 2 3; do
+            echo "=== lftp attempt $attempt ==="
+            timeout 240 lftp -f /tmp/backend.lftp && break
+            [ $attempt -lt 3 ] && sleep 10
+          done
