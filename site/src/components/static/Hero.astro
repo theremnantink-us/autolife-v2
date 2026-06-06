@@ -6,6 +6,7 @@
 // PNG-mask trick so the lockup scales crisply, has no stray "ink-blot"
 // accent over the «E», and animates without a raster mask.
 import Wordmark from './Wordmark.astro';
+import StoriesBar from '../islands/StoriesBar';
 ---
 <section class="hero" id="home" aria-labelledby="hero-heading">
   <!--
@@ -33,6 +34,11 @@ import Wordmark from './Wordmark.astro';
     <span class="hero__pill-dot" aria-hidden="true"></span>
     RUBLEVO-USPENSKOYE · 32 KM
   </span>
+
+  {/* Stories — centred directly under the lamp, lifted above the 3D canvas */}
+  <div class="hero__stories">
+    <StoriesBar client:load />
+  </div>
 
   <h1 id="hero-heading" class="hero__wordmark">
     <Wordmark size="hero" ariaLabel="AUTOLIFE" />
@@ -246,6 +252,23 @@ import Wordmark from './Wordmark.astro';
   }
   @media (max-width: 599px) {
     .hero__pill { font-size: 10px; padding: 5px 10px 5px 8px; }
+  }
+
+  /* Stories row — pinned just below the lamp bar, horizontally centred,
+     foreground (above the 3D canvas, lamp and vignette). */
+  .hero__stories {
+    position: absolute;
+    z-index: 5;
+    top: calc(var(--header-h) + var(--space-7));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92vw, 640px);
+    display: flex;
+    justify-content: center;
+    pointer-events: auto;
+  }
+  @media (max-width: 767px) {
+    .hero__stories { top: calc(var(--header-h) + var(--space-6)); width: 96vw; }
   }
   .hero__pill-dot {
     width: 6px; height: 6px;

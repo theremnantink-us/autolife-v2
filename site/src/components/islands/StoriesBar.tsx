@@ -7,6 +7,7 @@
  * from Supabase; renders nothing when there are none.
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   listStoriesPublic, STORY_KIND_LABEL,
   type StoryRow, type StoryKind,
@@ -49,18 +50,20 @@ export default function StoriesBar() {
         ))}
       </div>
 
-      {openIdx !== null && (
+      {openIdx !== null && typeof document !== 'undefined' && createPortal(
         <StoryViewer
           stories={stories}
           startIndex={openIdx}
           onClose={() => setOpenIdx(null)}
-        />
+        />,
+        document.body,
       )}
 
       <style>{`
         .stb { width: 100%; }
         .stb__row {
           display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 10px;
+          justify-content: center;
           scrollbar-width: none; -ms-overflow-style: none;
         }
         .stb__row::-webkit-scrollbar { display: none; }
@@ -149,7 +152,8 @@ function StoryViewer({
     return () => cancelAnimationFrame(rafRef.current);
   }, [paused, sIdx, slide, total, goNextSlide]);
 
-  // Keyboard
+  // Keyboard + scroll lock. Lenis runs its own RAF loop, so toggling
+  // body overflow alone won't stop the page — we must pause Lenis too.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -158,7 +162,13 @@ function StoryViewer({
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+    const lenis = (window as any).__lenis;
+    lenis?.stop?.();
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+      lenis?.start?.();
+    };
   }, [onClose, goNextSlide, goPrevSlide]);
 
   const handleCta = useCallback(() => {
