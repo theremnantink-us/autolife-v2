@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
@@ -39,9 +39,43 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      # Deploy frontend (dist/) → autolife.ru/public_html/dist/
-      - name: Deploy frontend via lftp
-        timeout-minutes: 15
+      # Deploy _astro/ chunks first (heaviest, most likely to timeout)
+      - name: Deploy _astro assets via lftp
+        timeout-minutes: 20
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          cat > /tmp/astro.lftp <<'LFTP_EOF'
+          set ftp:ssl-allow yes
+          set ftp:ssl-force no
+          set ssl:verify-certificate no
+          set ftp:passive-mode yes
+          set ftp:use-site-chmod no
+          set ftp:use-mlsd no
+          set ftp:use-mdtm no
+          set ftp:use-feat no
+          set ftp:use-allo no
+          set net:timeout 120
+          set net:idle 60
+          set net:max-retries 8
+          set net:reconnect-interval-base 10
+          set net:reconnect-interval-multiplier 1
+          set xfer:clobber yes
+          LFTP_EOF
+          echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/astro.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --ignore-size --only-newer ./site/dist/_astro/ autolife.ru/public_html/dist/_astro/" >> /tmp/astro.lftp
+          echo "bye" >> /tmp/astro.lftp
+          for attempt in 1 2 3; do
+            echo "=== _astro attempt $attempt ==="
+            timeout 1100 lftp -f /tmp/astro.lftp && break
+            [ "$attempt" -lt 3 ] && sleep 20 || exit 1
+          done
+
+      # Deploy remaining frontend files (HTML, images, fonts, etc.)
+      - name: Deploy frontend root via lftp
+        timeout-minutes: 10
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
@@ -56,20 +90,21 @@ jobs:
           set ftp:use-mlsd no
           set ftp:use-mdtm no
           set ftp:use-feat no
-          set net:timeout 90
+          set ftp:use-allo no
+          set net:timeout 120
           set net:idle 60
-          set net:max-retries 10
+          set net:max-retries 8
           set net:reconnect-interval-base 10
           set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --ignore-size --only-newer --exclude-glob _astro/ --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
           echo "bye" >> /tmp/frontend.lftp
           for attempt in 1 2 3; do
-            echo "=== lftp attempt $attempt ==="
-            timeout 840 lftp -f /tmp/frontend.lftp && break
-            [ $attempt -lt 3 ] && sleep 15
+            echo "=== frontend attempt $attempt ==="
+            timeout 540 lftp -f /tmp/frontend.lftp && break
+            [ "$attempt" -lt 3 ] && sleep 20 || exit 1
           done
 
       # Deploy PHP backend → autolife.ru/public_html/
@@ -89,18 +124,19 @@ jobs:
           set ftp:use-mlsd no
           set ftp:use-mdtm no
           set ftp:use-feat no
-          set net:timeout 90
+          set ftp:use-allo no
+          set net:timeout 120
           set net:idle 60
-          set net:max-retries 10
+          set net:max-retries 8
           set net:reconnect-interval-base 10
           set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --ignore-size --only-newer --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
           echo "bye" >> /tmp/backend.lftp
           for attempt in 1 2 3; do
-            echo "=== lftp attempt $attempt ==="
+            echo "=== backend attempt $attempt ==="
             timeout 240 lftp -f /tmp/backend.lftp && break
-            [ $attempt -lt 3 ] && sleep 10
+            [ "$attempt" -lt 3 ] && sleep 10 || exit 1
           done
