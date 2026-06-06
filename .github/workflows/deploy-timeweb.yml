@@ -6,10 +6,16 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# Cancel any in-progress deploy when a new one starts — avoids piling up
+# stuck FTP sessions on the shared host.
+concurrency:
+  group: deploy-timeweb
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -39,51 +45,13 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      # Upload _astro/ bundles using mput (no remote listing — avoids timeout)
-      - name: Deploy _astro assets via lftp
-        timeout-minutes: 25
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USER: ${{ secrets.FTP_USERNAME }}
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          cat > /tmp/astro.lftp <<'LFTP_EOF'
-          set ftp:ssl-allow yes
-          set ftp:ssl-force no
-          set ssl:verify-certificate no
-          set ftp:passive-mode yes
-          set ftp:use-site-chmod no
-          set ftp:use-mlsd no
-          set ftp:use-mdtm no
-          set ftp:use-feat no
-          set ftp:use-allo no
-          set net:timeout 120
-          set net:idle 60
-          set net:max-retries 8
-          set net:reconnect-interval-base 10
-          set net:reconnect-interval-multiplier 1
-          set xfer:clobber yes
-          LFTP_EOF
-          echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/astro.lftp
-          # _astro dir already exists from prior deploys; mkdir is a no-op safety
-          # net (a 550 "already exists" is harmless — lftp continues the script)
-          echo "mkdir -f autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
-          echo "lcd site/dist/_astro" >> /tmp/astro.lftp
-          echo "cd autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
-          # mput -c expands local wildcards itself and uploads file-by-file,
-          # skipping same-size files. No remote LIST → no listing timeout.
-          echo "mput -c *" >> /tmp/astro.lftp
-          echo "bye" >> /tmp/astro.lftp
-          for attempt in 1 2 3; do
-            echo "=== _astro mput attempt $attempt ==="
-            timeout 1400 lftp -f /tmp/astro.lftp && break
-            [ "$attempt" -lt 3 ] && sleep 20 || exit 1
-          done
-
-      # Deploy remaining dist/ files (HTML, IMG, fonts, manifests) via mirror
-      # This is a small set — mirror is fine here
-      - name: Deploy frontend root via lftp
-        timeout-minutes: 10
+      # Deploy frontend (dist/) → autolife.ru/public_html/dist/
+      # dist/ is small (~2 MB, ~25 files). Fast-fail config: a stalled data
+      # channel times out in 30s (not minutes), then the outer bash loop
+      # reconnects with a fresh lftp process — which clears passive-mode
+      # stalls on this shared host.
+      - name: Deploy frontend via lftp
+        timeout-minutes: 12
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
@@ -98,26 +66,28 @@ jobs:
           set ftp:use-mlsd no
           set ftp:use-mdtm no
           set ftp:use-feat no
-          set ftp:use-allo no
-          set net:timeout 120
-          set net:idle 60
-          set net:max-retries 8
-          set net:reconnect-interval-base 10
+          set net:timeout 30
+          set net:idle 20
+          set net:max-retries 2
+          set net:reconnect-interval-base 5
           set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob _astro/ --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
           echo "bye" >> /tmp/frontend.lftp
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5; do
             echo "=== frontend attempt $attempt ==="
-            timeout 540 lftp -f /tmp/frontend.lftp && break
-            [ "$attempt" -lt 3 ] && sleep 20 || exit 1
+            timeout 300 lftp -f /tmp/frontend.lftp && exit 0
+            echo "attempt $attempt failed, reconnecting…"
+            sleep 10
           done
+          echo "frontend deploy failed after 5 attempts" >&2
+          exit 1
 
       # Deploy PHP backend → autolife.ru/public_html/
       - name: Deploy PHP backend via lftp
-        timeout-minutes: 5
+        timeout-minutes: 6
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
@@ -132,19 +102,21 @@ jobs:
           set ftp:use-mlsd no
           set ftp:use-mdtm no
           set ftp:use-feat no
-          set ftp:use-allo no
-          set net:timeout 120
-          set net:idle 60
-          set net:max-retries 8
-          set net:reconnect-interval-base 10
+          set net:timeout 30
+          set net:idle 20
+          set net:max-retries 2
+          set net:reconnect-interval-base 5
           set net:reconnect-interval-multiplier 1
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
           echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
           echo "bye" >> /tmp/backend.lftp
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5; do
             echo "=== backend attempt $attempt ==="
-            timeout 240 lftp -f /tmp/backend.lftp && break
-            [ "$attempt" -lt 3 ] && sleep 10 || exit 1
+            timeout 240 lftp -f /tmp/backend.lftp && exit 0
+            echo "attempt $attempt failed, reconnecting…"
+            sleep 10
           done
+          echo "backend deploy failed after 5 attempts" >&2
+          exit 1
