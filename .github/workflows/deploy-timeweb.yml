@@ -65,13 +65,14 @@ jobs:
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/astro.lftp
-          # mkdir is idempotent — creates remote dir if missing
-          echo "mkdir -p autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
-          echo "cd autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
+          # _astro dir already exists from prior deploys; mkdir is a no-op safety
+          # net (a 550 "already exists" is harmless — lftp continues the script)
+          echo "mkdir -f autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
           echo "lcd site/dist/_astro" >> /tmp/astro.lftp
-          # mput -c: upload file-by-file, skip already-uploaded same-size files
-          # No remote directory listing required — avoids the listing timeout
-          echo "glob -a mput -c *" >> /tmp/astro.lftp
+          echo "cd autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
+          # mput -c expands local wildcards itself and uploads file-by-file,
+          # skipping same-size files. No remote LIST → no listing timeout.
+          echo "mput -c *" >> /tmp/astro.lftp
           echo "bye" >> /tmp/astro.lftp
           for attempt in 1 2 3; do
             echo "=== _astro mput attempt $attempt ==="
