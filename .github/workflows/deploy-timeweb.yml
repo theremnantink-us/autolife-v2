@@ -39,9 +39,9 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      # Deploy _astro/ chunks first (heaviest, most likely to timeout)
+      # Upload _astro/ bundles using mput (no remote listing — avoids timeout)
       - name: Deploy _astro assets via lftp
-        timeout-minutes: 20
+        timeout-minutes: 25
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USERNAME }}
@@ -65,15 +65,22 @@ jobs:
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/astro.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --ignore-size --only-newer ./site/dist/_astro/ autolife.ru/public_html/dist/_astro/" >> /tmp/astro.lftp
+          # mkdir is idempotent — creates remote dir if missing
+          echo "mkdir -p autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
+          echo "cd autolife.ru/public_html/dist/_astro" >> /tmp/astro.lftp
+          echo "lcd site/dist/_astro" >> /tmp/astro.lftp
+          # mput -c: upload file-by-file, skip already-uploaded same-size files
+          # No remote directory listing required — avoids the listing timeout
+          echo "glob -a mput -c *" >> /tmp/astro.lftp
           echo "bye" >> /tmp/astro.lftp
           for attempt in 1 2 3; do
-            echo "=== _astro attempt $attempt ==="
-            timeout 1100 lftp -f /tmp/astro.lftp && break
+            echo "=== _astro mput attempt $attempt ==="
+            timeout 1400 lftp -f /tmp/astro.lftp && break
             [ "$attempt" -lt 3 ] && sleep 20 || exit 1
           done
 
-      # Deploy remaining frontend files (HTML, images, fonts, etc.)
+      # Deploy remaining dist/ files (HTML, IMG, fonts, manifests) via mirror
+      # This is a small set — mirror is fine here
       - name: Deploy frontend root via lftp
         timeout-minutes: 10
         env:
@@ -99,7 +106,7 @@ jobs:
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/frontend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --ignore-size --only-newer --exclude-glob _astro/ --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob _astro/ --exclude-glob .git* --exclude-glob node_modules/ ./site/dist/ autolife.ru/public_html/dist/" >> /tmp/frontend.lftp
           echo "bye" >> /tmp/frontend.lftp
           for attempt in 1 2 3; do
             echo "=== frontend attempt $attempt ==="
@@ -133,7 +140,7 @@ jobs:
           set xfer:clobber yes
           LFTP_EOF
           echo "open -u \"$FTP_USER\",\"$FTP_PASS\" \"$FTP_SERVER\"" >> /tmp/backend.lftp
-          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --ignore-size --only-newer --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
+          echo "mirror --reverse --no-perms --no-symlinks --verbose --parallel=1 --exclude-glob .git* --exclude-glob .env --exclude-glob .env.* --exclude-glob dist/ ./public_html/ autolife.ru/public_html/" >> /tmp/backend.lftp
           echo "bye" >> /tmp/backend.lftp
           for attempt in 1 2 3; do
             echo "=== backend attempt $attempt ==="
