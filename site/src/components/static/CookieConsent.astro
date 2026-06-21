@@ -1,0 +1,119 @@
+---
+/**
+ * CookieConsent — bottom cookie-consent banner (152-FZ / ru-friendly).
+ *
+ * Shows once until the visitor clicks «Принять». Choice is stored in
+ * localStorage under `al_cookie_consent`. Hidden by default (no flash):
+ * the inline script reveals it only when consent is absent.
+ *
+ * Links to /privacy-policy.html where the cookie + withdrawal sections live.
+ */
+---
+
+<div id="cookie-consent" class="ck" role="dialog" aria-live="polite"
+     aria-label="Согласие на использование файлов cookie" hidden>
+  <p class="ck__text">
+    Мы используем файлы cookie для корректной работы сайта, аналитики и
+    удобства записи. Продолжая пользоваться сайтом, вы соглашаетесь с
+    <a href="/privacy-policy.html#cookies">политикой обработки данных</a>.
+    Отозвать согласие можно в любой момент —
+    <a href="/privacy-policy.html#withdraw">инструкция здесь</a>.
+  </p>
+  <button id="cookie-accept" class="ck__btn" type="button">Принять</button>
+</div>
+
+<style is:global>
+  .ck {
+    position: fixed;
+    left: clamp(12px, 4vw, 24px);
+    right: clamp(12px, 4vw, 24px);
+    bottom: clamp(12px, 4vw, 24px);
+    bottom: max(clamp(12px, 4vw, 24px), env(safe-area-inset-bottom));
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-4, 16px);
+    max-width: 720px;
+    margin-inline: auto;
+    padding: var(--space-4, 16px) var(--space-5, 24px);
+
+    background: var(--glass-bg, rgba(17, 19, 22, 0.62));
+    backdrop-filter: blur(var(--glass-blur, 18px));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 18px));
+    border: 1px solid var(--hairline-strong, rgba(255, 255, 255, 0.16));
+    border-radius: var(--radius-3, 14px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+
+    color: var(--text, #f5f6f7);
+    font-family: var(--font-body), system-ui, sans-serif;
+
+    animation: ck-rise 0.4s ease both;
+  }
+
+  @keyframes ck-rise {
+    from { transform: translateY(16px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .ck__text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-muted, #8a9099);
+  }
+
+  .ck__text a {
+    color: var(--chrome-1, #e8eaed);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .ck__text a:hover { color: #fff; }
+
+  .ck__btn {
+    flex: 0 0 auto;
+    padding: 10px 26px;
+    border: 0;
+    border-radius: var(--radius-2, 10px);
+    background: var(--chrome-gradient, linear-gradient(135deg, #f5f6f7 0%, #8c9197 50%, #2c2f33 100%));
+    color: #0d0f12;
+    font: 600 14px/1 var(--font-body), system-ui, sans-serif;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ck__btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+  .ck__btn:active { transform: translateY(0); }
+
+  @media (max-width: 600px) {
+    .ck { flex-direction: column; align-items: stretch; text-align: left; }
+    .ck__btn { width: 100%; padding: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ck { animation: none; }
+  }
+
+  @media print { .ck { display: none; } }
+</style>
+
+<script is:inline>
+  (function () {
+    var KEY = "al_cookie_consent";
+    var el = document.getElementById("cookie-consent");
+    if (!el) return;
+    try {
+      if (localStorage.getItem(KEY) === "1") return; // already accepted
+    } catch (e) { /* localStorage blocked — show banner anyway */ }
+    el.hidden = false;
+    var btn = document.getElementById("cookie-accept");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        try { localStorage.setItem(KEY, "1"); } catch (e) {}
+        el.hidden = true;
+      });
+    }
+  })();
+</script>

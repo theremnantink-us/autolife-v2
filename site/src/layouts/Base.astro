@@ -16,6 +16,7 @@ const {
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://autolife.ru').toString();
 import TelegramFab from "../components/static/TelegramFab.astro";
+import CookieConsent from "../components/static/CookieConsent.astro";
 import Analytics from "../components/static/Analytics.astro";
 ---
 <!doctype html>
@@ -105,6 +106,7 @@ import Analytics from "../components/static/Analytics.astro";
   </main>
   <slot name="footer" />
   <TelegramFab />
+  <CookieConsent />
 
   <!-- Lenis smooth scroll + GSAP ScrollTrigger sync + visit tracking -->
   <script>
