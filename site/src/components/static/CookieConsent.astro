@@ -51,6 +51,10 @@
     animation: ck-rise 0.4s ease both;
   }
 
+  /* display:flex above overrides the default [hidden]{display:none}, so the
+     hidden attribute alone wouldn't hide the banner. Make it explicit. */
+  .ck[hidden] { display: none !important; }
+
   @keyframes ck-rise {
     from { transform: translateY(16px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
